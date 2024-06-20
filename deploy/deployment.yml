@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{NAMESPACE}}
+  name: {{SERVICE-NAME}}-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{SERVICE-NAME}}
+  template:
+    metadata:
+      name: {{SERVICE-NAME}}
+      labels:
+        app: {{SERVICE-NAME}}
+    spec:
+      automountServiceAccountToken: true
+      serviceAccountName: discovery
+      restartPolicy: Always
+      containers:
+        - name: {{SERVICE-NAME}}
+          image: {{IMAGE}}
+          imagePullPolicy: Always
+          env:
+            - name: ENV
+              value: DEV
+            - name: SERVICE-NAME
+              value: {{SERVICE-NAME}}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: APOLLO_APP_ID
+              value: {{APOLLO_APP_ID}}
+            - name: APOLLO_ENDPOINT
+              value: {{APOLLO_ENDPOINT}}
+            - name: APOLLO_NAMESPACE
+              value: {{APOLLO_NAMESPACE}}
+            - name: APOLLO_SECRET
+              value: {{APOLLO_SECRET}}
+            - name: APOLLO_CLUSTER
+              value: {{APOLLO_CLUSTER}}
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+              name: http
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+            initialDelaySeconds: 10
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /healthz
+            initialDelaySeconds: 10
+            periodSeconds: 3

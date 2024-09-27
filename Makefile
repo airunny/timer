@@ -3,6 +3,7 @@ GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 CURRENT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 CURRENT_FOLDER=$(shell basename $(shell pwd))
+CURRENT_FOLDER="github.com/airunny/timer"
 
 PROTO_FILE_NAME=wiki_protos
 ifneq ($(wildcard $(PROTO_FILE_NAME)),)
@@ -19,7 +20,6 @@ PROTO_TARGETS=$(foreach file,$(PROTO_RELATIVE_PATHS),$(file)=$(CURRENT_FOLDER)/a
 PROTO_RESULT=$(shell echo $(PROTO_TARGETS) | sed 's/ /,/g')
 PROTO_RESULT:=$(shell echo $(PROTO_RESULT) | sed 's/,/,M/g')
 IMPORT_REPLACE=M$(PROTO_RESULT)
-
 
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.

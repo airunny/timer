@@ -1,6 +1,9 @@
 package conf
 
-import "timer/api/common"
+import (
+	"github.com/airunny/timer/api/common"
+	"github.com/airunny/timer/pkg/ikafka"
+)
 
 type Bootstrap struct {
 	Server   *common.ServerConfig `json:"server"`
@@ -8,12 +11,6 @@ type Bootstrap struct {
 	Business *Business            `json:"business"`
 }
 
-type Elastic struct {
-	Source   string `json:"source"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 type Business struct {
-	Elastic *Elastic `json:"elastic"`
+	KAFKA *ikafka.ProducerConfig `json:"kafka"`
 }

@@ -7,16 +7,14 @@
 package main
 
 import (
+	"github.com/airunny/timer/api/common"
+	"github.com/airunny/timer/internal/conf"
+	"github.com/airunny/timer/internal/dao"
+	"github.com/airunny/timer/internal/server"
+	"github.com/airunny/timer/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
-	"timer/api/common"
-	"timer/internal/conf"
-	"timer/internal/dao"
-	"timer/internal/server"
-	"timer/internal/service"
-)
 
-import (
 	_ "go.uber.org/automaxprocs"
 )
 
@@ -34,11 +32,15 @@ func wireApp(serverConfig *common.ServerConfig, dataConfig *common.DataConfig, b
 		return nil, nil, err
 	}
 	user := dao.NewUser(db, client)
-	serviceService := service.NewService(business, user)
+	application := dao.NewApplication(db)
+	timerRecord := dao.NewTimer(db)
+	timerCallback := dao.NewTimerCallback(db)
+	serviceService, cleanup3 := service.NewService(business, user, application, timerRecord, timerCallback)
 	grpcServer := server.NewGRPCServer(serverConfig, serviceService, logger)
 	httpServer := server.NewHTTPServer(serverConfig, serviceService, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

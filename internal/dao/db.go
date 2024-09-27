@@ -4,6 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/airunny/timer/api/common"
+	"github.com/airunny/timer/internal/models"
+
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/igorm"
 	"github.com/airunny/wiki-go-tools/iredis"
@@ -12,8 +15,6 @@ import (
 	goCache "github.com/liyanbing/go-cache"
 	redisCache "github.com/liyanbing/go-cache/cacher/redis"
 	"gorm.io/gorm"
-	"timer/api/common"
-	"timer/internal/models"
 )
 
 func NewMySQL(c *common.DataConfig, logger log.Logger) (*gorm.DB, func(), error) {
@@ -33,7 +34,13 @@ func NewMySQL(c *common.DataConfig, logger log.Logger) (*gorm.DB, func(), error)
 		return nil, nil, err
 	}
 
-	err = db.AutoMigrate(&models.Application{}, &models.TimerRecord{})
+	err = db.AutoMigrate(
+		&models.Application{},
+		&models.Timer{},
+		&models.TimerCallback{},
+		&models.User{},
+		&models.Token{},
+	)
 	if err != nil {
 		return nil, nil, err
 	}

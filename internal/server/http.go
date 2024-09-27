@@ -3,6 +3,9 @@ package server
 import (
 	"time"
 
+	"github.com/airunny/timer/api/common"
+	v1 "github.com/airunny/timer/api/timer/v1"
+	"github.com/airunny/timer/internal/service"
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/ilog"
 	"github.com/airunny/wiki-go-tools/metrics"
@@ -16,9 +19,6 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/go-kratos/swagger-api/openapiv2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"timer/api/common"
-	v1 "timer/api/timer/v1"
-	"timer/internal/service"
 )
 
 func NewHTTPServer(c *common.ServerConfig, svc *service.Service, logger log.Logger) *http.Server {

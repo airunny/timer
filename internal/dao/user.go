@@ -2,13 +2,14 @@ package dao
 
 import (
 	"context"
-	"math"
+
+	v1 "github.com/airunny/timer/api/timer/v1"
+	"github.com/airunny/timer/internal/models"
 
 	"github.com/airunny/wiki-go-tools/igorm"
 	"github.com/airunny/wiki-go-tools/ormhelper"
 	redis "github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
-	"timer/internal/models"
 )
 
 type User struct {
@@ -27,13 +28,37 @@ func (s *User) Session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
 	return igorm.NewOptions(s.db, opts...).Session().WithContext(ctx)
 }
 
-func (s *User) Create(ctx context.Context, in *models.User, opts ...igorm.Option) (int64, error) {
+func (s *User) Add(ctx context.Context, in *models.User, opts ...igorm.Option) error {
 	err := s.Session(ctx, opts...).Create(in).Error
+	if err != nil {
+		return ormhelper.WrapErr(err)
+	}
+
+	return nil
+}
+
+func (s *User) CountByName(ctx context.Context, name string, opts ...igorm.Option) (int64, error) {
+	var count int64
+	err := s.Session(ctx, opts...).
+		Model(&models.User{}).
+		Where("name = ?", name).
+		Count(&count).Error
 	if err != nil {
 		return 0, ormhelper.WrapErr(err)
 	}
+	return count, nil
+}
 
-	return in.ID, nil
+func (s *User) CountByNameWithInclude(ctx context.Context, name, excludeId string, opts ...igorm.Option) (int64, error) {
+	var count int64
+	err := s.Session(ctx, opts...).
+		Model(&models.User{}).
+		Where("name = ? and id != ?", name, excludeId).
+		Count(&count).Error
+	if err != nil {
+		return 0, ormhelper.WrapErr(err)
+	}
+	return count, nil
 }
 
 func (s *User) Delete(ctx context.Context, id int64, opts ...igorm.Option) error {
@@ -52,7 +77,18 @@ func (s *User) Update(ctx context.Context, in *models.User, opts ...igorm.Option
 	return nil
 }
 
-func (s *User) Get(ctx context.Context, id int64, opts ...igorm.Option) (*models.User, error) {
+func (s *User) UpdateStatus(ctx context.Context, id string, status v1.UserStatus, opts ...igorm.Option) error {
+	err := s.Session(ctx, opts...).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Update("status", status).Error
+	if err != nil {
+		return ormhelper.WrapErr(err)
+	}
+	return nil
+}
+
+func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
 
 	err := s.Session(ctx, opts...).
@@ -77,26 +113,23 @@ func (s *User) FindByPage(ctx context.Context, page, size int, opts ...igorm.Opt
 	return out, nil
 }
 
-func (s *User) FindByOffset(ctx context.Context, offset int64, size int, opts ...igorm.Option) ([]*models.User, int64, error) {
-	if offset <= 0 {
-		offset = math.MaxInt64
-	}
-
-	var out []*models.User
-	err := s.Session(ctx, opts...).
-		Where("id < ?", offset). // 从offset处开始取
-		Order("id desc").        // 如果要使用offset，则必须要按照ID进行排序
-		Limit(size + 1).         // 这里多取一条
-		Find(&out).Error
-	if err != nil {
-		return nil, 0, ormhelper.WrapErr(err)
-	}
-
+func (s *User) FindByOffset(ctx context.Context, size int, offset string, opts ...igorm.Option) ([]*models.User, string, error) {
 	var (
-		count      = len(out)
-		nextOffset int64
+		out        []*models.User
+		session    = s.Session(ctx, opts...).Order("id desc")
+		nextOffset = ""
 	)
 
+	if offset != "" {
+		session = session.Where("id < ?", offset)
+	}
+
+	err := session.Limit(size + 1).Find(&out).Error
+	if err != nil {
+		return out, nextOffset, ormhelper.WrapErr(err)
+	}
+
+	count := len(out)
 	if count > 1 && count > size {
 		nextOffset = out[count-2].ID
 	}
@@ -104,6 +137,5 @@ func (s *User) FindByOffset(ctx context.Context, offset int64, size int, opts ..
 	if count > size {
 		out = out[:count-1]
 	}
-
 	return out, nextOffset, nil
 }

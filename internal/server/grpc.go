@@ -3,6 +3,9 @@ package server
 import (
 	"time"
 
+	"github.com/airunny/timer/api/common"
+	v1 "github.com/airunny/timer/api/timer/v1"
+	"github.com/airunny/timer/internal/service"
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/ilog"
 	"github.com/airunny/wiki-go-tools/metrics"
@@ -11,9 +14,6 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"timer/api/common"
-	v1 "timer/api/timer/v1"
-	"timer/internal/service"
 )
 
 func NewGRPCServer(c *common.ServerConfig, svc *service.Service, logger log.Logger) *grpc.Server {

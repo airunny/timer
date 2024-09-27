@@ -5,6 +5,9 @@ package api.timer.v1;
 import "google/api/annotations.proto";
 import "common/common.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "timer/v1/application.proto";
+import "timer/v1/timer.proto";
+import "timer/v1/user.proto";
 
 option go_package = "api/timer/v1;v1";
 
@@ -17,10 +20,6 @@ service Service {
     option (google.api.http) = {post: "/v1/app" body:"*"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "添加应用",tags:["应用"]};
   }
-  rpc GetApplication(GetApplicationRequest) returns (Application) {
-    option (google.api.http) = {get: "/v1/app/{id}"};
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取应用详情",tags:["应用"]};
-  }
   rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationReply) {
     option (google.api.http) = {delete: "/v1/app/{id}"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "删除应用",tags:["应用"]};
@@ -28,6 +27,18 @@ service Service {
   rpc UpdateApplication(UpdateApplicationRequest) returns (UpdateApplicationReply) {
     option (google.api.http) = {put: "/v1/app/{id}" body:"*"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "更新应用",tags:["应用"]};
+  }
+  rpc UpdateApplicationStatus(UpdateApplicationStatusRequest) returns (UpdateApplicationStatusReply) {
+    option (google.api.http) = {put: "/v1/app/{id}/status" body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "更新应用状态",tags:["应用"]};
+  }
+  rpc GetApplication(GetApplicationRequest) returns (Application) {
+    option (google.api.http) = {get: "/v1/app/{id}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取应用详情",tags:["应用"]};
+  }
+  rpc GenApplicationSecret(GenApplicationSecretRequest) returns (GenApplicationSecretReply) {
+    option (google.api.http) = {put: "/v1/app/{id}/secret" body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "重新生成application秘钥",tags:["应用"]};
   }
   rpc ListApplication(ListApplicationRequest) returns (ListApplicationReply) {
     option (google.api.http) = {get: "/v1/app"};
@@ -43,9 +54,9 @@ service Service {
     option (google.api.http) = {get: "/v1/timer/{id}"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "查看定时器详情",tags:["定时器"]};
   }
-  rpc DeleteTimer(DeleteTimerRequest) returns (DeleteTimerReply) {
-    option (google.api.http) = {delete: "/v1/timer/{id}"};
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "删除定时器",tags:["定时器"]};
+  rpc RevokeTimer(RevokeTimerRequest) returns (RevokeTimerReply) {
+    option (google.api.http) = {get: "/v1/timer/{id}/invoke"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "撤销定时器",tags:["定时器"]};
   }
   rpc ReplayTimer(ReplayTimerRequest) returns (ReplayTimerReply) {
     option (google.api.http) = {get: "/v1/timer/{id}/replay"};
@@ -55,109 +66,26 @@ service Service {
     option (google.api.http) = {get: "/v1/timer"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "定时器列表",tags:["定时器"]};
   }
-}
+  rpc ListTimerCallback(ListTimerCallbackRequest) returns (ListTimerCallbackReply) {
+    option (google.api.http) = {get: "/v1/timer/{id}/callback"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "定时器列表回调记录",tags:["定时器"]};
+  }
 
-/**=============== 用户 ==================*/
-
-
-/**=============== 应用 ==================*/
-message Application {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
-  string name = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用名称"}];
-  string description = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用描述"}];
-  int64 created_at = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "创建时间，单位秒"}];
-  string secret = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "秘钥"}];
-  int64 updated_at = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "最后一次更新时间"}];
-  bool authentication = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "是否打开认证"}];
-}
-message ApplicationShort {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
-  string name = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用名称"}];
-  string description = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用描述"}];
-  string created_at = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "创建时间，单位秒"}];
-}
-
-message AddApplicationRequest {
-  string name = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用名称"}];
-  string description = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用描述"}];
-  bool authentication = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "是否打开认证"}];
-}
-
-message GetApplicationRequest {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
-}
-
-message DeleteApplicationRequest {
-  string id = 1;
-}
-message DeleteApplicationReply {}
-
-message UpdateApplicationRequest {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
-  string name = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用名称"}];
-  string description = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用描述"}];
-}
-message UpdateApplicationReply {}
-
-message ListApplicationRequest {
-  int64 size = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "每页数据量，默认10"}];
-  int64 page = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据页,默认1"}];
-}
-message ListApplicationReply {
- repeated ApplicationShort items = 1;
-}
-
-/**=============== 定时器 ==================*/
-enum CallbackType {
-  UNKNOWN = 0; // 非法值
-  HTTP = 1; // http
-  MQ = 2; // 消息队列
-}
-enum TimerStatus {
-  PROCESSING = 0; // 未到时间
-  SUCCESS = 1;
-  FAILED = 2;
-}
-message AddTimerRequest {
-  CallbackType callback_type = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
-  int64 expire_at = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
-  string attach = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
-  string callback_url = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "http回调地址，注意回调方式为 GET callback_url?attach=attach"}];
-  string mq_topic = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "消息队列topic"}];
-}
-message AddTimerReply {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
-}
-
-message GetTimerRequest {
-  string id = 1;
-}
-message Timer {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
-  CallbackType callback_type = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
-  int64 expire_at = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
-  string attach = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
-  string callback_url = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "http回调地址，注意回调方式为 GET callback_url?attach=attach"}];
-  string mq_topic = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "消息队列topic"}];
-  int64 ttl = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "剩余时间，如果已经过期则为-1"}];
-  int64 retry = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调重试次数"}];
-  repeated string callback_failed_reasons = 9[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调失败原因"}];
-}
-
-message DeleteTimerRequest {
-  string id = 1;
-}
-message DeleteTimerReply {}
-
-message ReplayTimerRequest {
-  string id = 1;
-}
-message ReplayTimerReply {}
-
-message ListTimerRequest {
- int64 size = 1;
- int64 offset = 2;
-}
-message ListTimerReply {
- repeated Timer items = 1;
+  // 用户
+  rpc AddUser(AddUserRequest) returns (AddUserReply) {
+    option (google.api.http) = {post: "/v1/user" body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "添加用户",tags:["用户"]};
+  }
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {get: "/v1/user/{id}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取用户详情",tags:["用户"]};
+  }
+  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (UpdateUserStatusReply) {
+    option (google.api.http) = {put: "/v1/user/{id}/status" body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "更新用户状态",tags:["用户"]};
+  }
+  rpc ListUser(ListUserRequest) returns (ListUserReply) {
+    option (google.api.http) = {get: "/v1/user"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取用户列表",tags:["用户"]};
+  }
 }

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/airunny/timer/internal/conf"
 	"github.com/airunny/wiki-go-tools/config"
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/ilog"
@@ -13,7 +14,6 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	_ "go.uber.org/automaxprocs"
-	"timer/internal/conf"
 )
 
 var (

@@ -8,10 +8,10 @@ package v1
 
 import (
 	context "context"
+	common "github.com/airunny/timer/api/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	common "timer/api/common"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,17 +20,24 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Service_Healthy_FullMethodName           = "/api.timer.v1.Service/Healthy"
-	Service_AddApplication_FullMethodName    = "/api.timer.v1.Service/AddApplication"
-	Service_GetApplication_FullMethodName    = "/api.timer.v1.Service/GetApplication"
-	Service_DeleteApplication_FullMethodName = "/api.timer.v1.Service/DeleteApplication"
-	Service_UpdateApplication_FullMethodName = "/api.timer.v1.Service/UpdateApplication"
-	Service_ListApplication_FullMethodName   = "/api.timer.v1.Service/ListApplication"
-	Service_AddTimer_FullMethodName          = "/api.timer.v1.Service/AddTimer"
-	Service_GetTimer_FullMethodName          = "/api.timer.v1.Service/GetTimer"
-	Service_DeleteTimer_FullMethodName       = "/api.timer.v1.Service/DeleteTimer"
-	Service_ReplayTimer_FullMethodName       = "/api.timer.v1.Service/ReplayTimer"
-	Service_ListTimer_FullMethodName         = "/api.timer.v1.Service/ListTimer"
+	Service_Healthy_FullMethodName                 = "/api.timer.v1.Service/Healthy"
+	Service_AddApplication_FullMethodName          = "/api.timer.v1.Service/AddApplication"
+	Service_DeleteApplication_FullMethodName       = "/api.timer.v1.Service/DeleteApplication"
+	Service_UpdateApplication_FullMethodName       = "/api.timer.v1.Service/UpdateApplication"
+	Service_UpdateApplicationStatus_FullMethodName = "/api.timer.v1.Service/UpdateApplicationStatus"
+	Service_GetApplication_FullMethodName          = "/api.timer.v1.Service/GetApplication"
+	Service_GenApplicationSecret_FullMethodName    = "/api.timer.v1.Service/GenApplicationSecret"
+	Service_ListApplication_FullMethodName         = "/api.timer.v1.Service/ListApplication"
+	Service_AddTimer_FullMethodName                = "/api.timer.v1.Service/AddTimer"
+	Service_GetTimer_FullMethodName                = "/api.timer.v1.Service/GetTimer"
+	Service_RevokeTimer_FullMethodName             = "/api.timer.v1.Service/RevokeTimer"
+	Service_ReplayTimer_FullMethodName             = "/api.timer.v1.Service/ReplayTimer"
+	Service_ListTimer_FullMethodName               = "/api.timer.v1.Service/ListTimer"
+	Service_ListTimerCallback_FullMethodName       = "/api.timer.v1.Service/ListTimerCallback"
+	Service_AddUser_FullMethodName                 = "/api.timer.v1.Service/AddUser"
+	Service_GetUser_FullMethodName                 = "/api.timer.v1.Service/GetUser"
+	Service_UpdateUserStatus_FullMethodName        = "/api.timer.v1.Service/UpdateUserStatus"
+	Service_ListUser_FullMethodName                = "/api.timer.v1.Service/ListUser"
 )
 
 // ServiceClient is the client API for Service service.
@@ -40,16 +47,24 @@ type ServiceClient interface {
 	Healthy(ctx context.Context, in *common.EmptyRequest, opts ...grpc.CallOption) (*common.HealthyReply, error)
 	// 应用
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*Application, error)
-	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationReply, error)
 	UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationReply, error)
+	UpdateApplicationStatus(ctx context.Context, in *UpdateApplicationStatusRequest, opts ...grpc.CallOption) (*UpdateApplicationStatusReply, error)
+	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	GenApplicationSecret(ctx context.Context, in *GenApplicationSecretRequest, opts ...grpc.CallOption) (*GenApplicationSecretReply, error)
 	ListApplication(ctx context.Context, in *ListApplicationRequest, opts ...grpc.CallOption) (*ListApplicationReply, error)
 	// 定时器
 	AddTimer(ctx context.Context, in *AddTimerRequest, opts ...grpc.CallOption) (*AddTimerReply, error)
 	GetTimer(ctx context.Context, in *GetTimerRequest, opts ...grpc.CallOption) (*Timer, error)
-	DeleteTimer(ctx context.Context, in *DeleteTimerRequest, opts ...grpc.CallOption) (*DeleteTimerReply, error)
+	RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...grpc.CallOption) (*RevokeTimerReply, error)
 	ReplayTimer(ctx context.Context, in *ReplayTimerRequest, opts ...grpc.CallOption) (*ReplayTimerReply, error)
 	ListTimer(ctx context.Context, in *ListTimerRequest, opts ...grpc.CallOption) (*ListTimerReply, error)
+	ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...grpc.CallOption) (*ListTimerCallbackReply, error)
+	// 用户
+	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserReply, error)
+	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
+	UpdateUserStatus(ctx context.Context, in *UpdateUserStatusRequest, opts ...grpc.CallOption) (*UpdateUserStatusReply, error)
+	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserReply, error)
 }
 
 type serviceClient struct {
@@ -78,15 +93,6 @@ func (c *serviceClient) AddApplication(ctx context.Context, in *AddApplicationRe
 	return out, nil
 }
 
-func (c *serviceClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
-	out := new(Application)
-	err := c.cc.Invoke(ctx, Service_GetApplication_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *serviceClient) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationReply, error) {
 	out := new(DeleteApplicationReply)
 	err := c.cc.Invoke(ctx, Service_DeleteApplication_FullMethodName, in, out, opts...)
@@ -99,6 +105,33 @@ func (c *serviceClient) DeleteApplication(ctx context.Context, in *DeleteApplica
 func (c *serviceClient) UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationReply, error) {
 	out := new(UpdateApplicationReply)
 	err := c.cc.Invoke(ctx, Service_UpdateApplication_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) UpdateApplicationStatus(ctx context.Context, in *UpdateApplicationStatusRequest, opts ...grpc.CallOption) (*UpdateApplicationStatusReply, error) {
+	out := new(UpdateApplicationStatusReply)
+	err := c.cc.Invoke(ctx, Service_UpdateApplicationStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, Service_GetApplication_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) GenApplicationSecret(ctx context.Context, in *GenApplicationSecretRequest, opts ...grpc.CallOption) (*GenApplicationSecretReply, error) {
+	out := new(GenApplicationSecretReply)
+	err := c.cc.Invoke(ctx, Service_GenApplicationSecret_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,9 +165,9 @@ func (c *serviceClient) GetTimer(ctx context.Context, in *GetTimerRequest, opts 
 	return out, nil
 }
 
-func (c *serviceClient) DeleteTimer(ctx context.Context, in *DeleteTimerRequest, opts ...grpc.CallOption) (*DeleteTimerReply, error) {
-	out := new(DeleteTimerReply)
-	err := c.cc.Invoke(ctx, Service_DeleteTimer_FullMethodName, in, out, opts...)
+func (c *serviceClient) RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...grpc.CallOption) (*RevokeTimerReply, error) {
+	out := new(RevokeTimerReply)
+	err := c.cc.Invoke(ctx, Service_RevokeTimer_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +192,51 @@ func (c *serviceClient) ListTimer(ctx context.Context, in *ListTimerRequest, opt
 	return out, nil
 }
 
+func (c *serviceClient) ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...grpc.CallOption) (*ListTimerCallbackReply, error) {
+	out := new(ListTimerCallbackReply)
+	err := c.cc.Invoke(ctx, Service_ListTimerCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserReply, error) {
+	out := new(AddUserReply)
+	err := c.cc.Invoke(ctx, Service_AddUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, Service_GetUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) UpdateUserStatus(ctx context.Context, in *UpdateUserStatusRequest, opts ...grpc.CallOption) (*UpdateUserStatusReply, error) {
+	out := new(UpdateUserStatusReply)
+	err := c.cc.Invoke(ctx, Service_UpdateUserStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserReply, error) {
+	out := new(ListUserReply)
+	err := c.cc.Invoke(ctx, Service_ListUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
@@ -166,16 +244,24 @@ type ServiceServer interface {
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
 	// 应用
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
-	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error)
+	UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error)
+	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
+	GenApplicationSecret(context.Context, *GenApplicationSecretRequest) (*GenApplicationSecretReply, error)
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
 	// 定时器
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
 	GetTimer(context.Context, *GetTimerRequest) (*Timer, error)
-	DeleteTimer(context.Context, *DeleteTimerRequest) (*DeleteTimerReply, error)
+	RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error)
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
 	ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error)
+	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
+	// 用户
+	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
+	GetUser(context.Context, *GetUserRequest) (*User, error)
+	UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusReply, error)
+	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -189,14 +275,20 @@ func (UnimplementedServiceServer) Healthy(context.Context, *common.EmptyRequest)
 func (UnimplementedServiceServer) AddApplication(context.Context, *AddApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
 }
-func (UnimplementedServiceServer) GetApplication(context.Context, *GetApplicationRequest) (*Application, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
-}
 func (UnimplementedServiceServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
 }
 func (UnimplementedServiceServer) UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplication not implemented")
+}
+func (UnimplementedServiceServer) UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateApplicationStatus not implemented")
+}
+func (UnimplementedServiceServer) GetApplication(context.Context, *GetApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
+}
+func (UnimplementedServiceServer) GenApplicationSecret(context.Context, *GenApplicationSecretRequest) (*GenApplicationSecretReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenApplicationSecret not implemented")
 }
 func (UnimplementedServiceServer) ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListApplication not implemented")
@@ -207,14 +299,29 @@ func (UnimplementedServiceServer) AddTimer(context.Context, *AddTimerRequest) (*
 func (UnimplementedServiceServer) GetTimer(context.Context, *GetTimerRequest) (*Timer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTimer not implemented")
 }
-func (UnimplementedServiceServer) DeleteTimer(context.Context, *DeleteTimerRequest) (*DeleteTimerReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteTimer not implemented")
+func (UnimplementedServiceServer) RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeTimer not implemented")
 }
 func (UnimplementedServiceServer) ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReplayTimer not implemented")
 }
 func (UnimplementedServiceServer) ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTimer not implemented")
+}
+func (UnimplementedServiceServer) ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTimerCallback not implemented")
+}
+func (UnimplementedServiceServer) AddUser(context.Context, *AddUserRequest) (*AddUserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
+}
+func (UnimplementedServiceServer) GetUser(context.Context, *GetUserRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedServiceServer) UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserStatus not implemented")
+}
+func (UnimplementedServiceServer) ListUser(context.Context, *ListUserRequest) (*ListUserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUser not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -265,24 +372,6 @@ func _Service_AddApplication_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).GetApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Service_GetApplication_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).GetApplication(ctx, req.(*GetApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Service_DeleteApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteApplicationRequest)
 	if err := dec(in); err != nil {
@@ -315,6 +404,60 @@ func _Service_UpdateApplication_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).UpdateApplication(ctx, req.(*UpdateApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_UpdateApplicationStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateApplicationStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).UpdateApplicationStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_UpdateApplicationStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).UpdateApplicationStatus(ctx, req.(*UpdateApplicationStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).GetApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_GetApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).GetApplication(ctx, req.(*GetApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_GenApplicationSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenApplicationSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).GenApplicationSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_GenApplicationSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).GenApplicationSecret(ctx, req.(*GenApplicationSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -373,20 +516,20 @@ func _Service_GetTimer_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_DeleteTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteTimerRequest)
+func _Service_RevokeTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeTimerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).DeleteTimer(ctx, in)
+		return srv.(ServiceServer).RevokeTimer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_DeleteTimer_FullMethodName,
+		FullMethod: Service_RevokeTimer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).DeleteTimer(ctx, req.(*DeleteTimerRequest))
+		return srv.(ServiceServer).RevokeTimer(ctx, req.(*RevokeTimerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -427,6 +570,96 @@ func _Service_ListTimer_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_ListTimerCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTimerCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).ListTimerCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_ListTimerCallback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).ListTimerCallback(ctx, req.(*ListTimerCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).AddUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_AddUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).AddUser(ctx, req.(*AddUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_GetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).GetUser(ctx, req.(*GetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_UpdateUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).UpdateUserStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_UpdateUserStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).UpdateUserStatus(ctx, req.(*UpdateUserStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_ListUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).ListUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_ListUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).ListUser(ctx, req.(*ListUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -443,16 +676,24 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_AddApplication_Handler,
 		},
 		{
-			MethodName: "GetApplication",
-			Handler:    _Service_GetApplication_Handler,
-		},
-		{
 			MethodName: "DeleteApplication",
 			Handler:    _Service_DeleteApplication_Handler,
 		},
 		{
 			MethodName: "UpdateApplication",
 			Handler:    _Service_UpdateApplication_Handler,
+		},
+		{
+			MethodName: "UpdateApplicationStatus",
+			Handler:    _Service_UpdateApplicationStatus_Handler,
+		},
+		{
+			MethodName: "GetApplication",
+			Handler:    _Service_GetApplication_Handler,
+		},
+		{
+			MethodName: "GenApplicationSecret",
+			Handler:    _Service_GenApplicationSecret_Handler,
 		},
 		{
 			MethodName: "ListApplication",
@@ -467,8 +708,8 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_GetTimer_Handler,
 		},
 		{
-			MethodName: "DeleteTimer",
-			Handler:    _Service_DeleteTimer_Handler,
+			MethodName: "RevokeTimer",
+			Handler:    _Service_RevokeTimer_Handler,
 		},
 		{
 			MethodName: "ReplayTimer",
@@ -477,6 +718,26 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTimer",
 			Handler:    _Service_ListTimer_Handler,
+		},
+		{
+			MethodName: "ListTimerCallback",
+			Handler:    _Service_ListTimerCallback_Handler,
+		},
+		{
+			MethodName: "AddUser",
+			Handler:    _Service_AddUser_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _Service_GetUser_Handler,
+		},
+		{
+			MethodName: "UpdateUserStatus",
+			Handler:    _Service_UpdateUserStatus_Handler,
+		},
+		{
+			MethodName: "ListUser",
+			Handler:    _Service_ListUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,9 +1,9 @@
 server:
   grpc:
-    addr: 0.0.0.0:9090
+    addr: 127.0.0.1:9090
     timeout_seconds: 5
   http:
-    addr: 0.0.0.0:8080
+    addr: 127.0.0.1:8080
     timeout_seconds: 5
 data:
   database:

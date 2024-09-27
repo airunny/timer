@@ -10,5 +10,6 @@ var ProviderSet = wire.NewSet(
 	NewRedisCache,
 	NewUser,
 	NewApplication,
-	NewTimerRecord,
+	NewTimer,
+	NewTimerCallback,
 )

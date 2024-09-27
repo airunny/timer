@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/airunny/timer/api/common"
+	"github.com/airunny/timer/internal/models"
 	"github.com/airunny/wiki-go-tools/objectid"
 	"github.com/airunny/wiki-go-tools/ormhelper"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/stretchr/testify/assert"
-	"timer/api/common"
-	"timer/internal/models"
 )
 
 func TestNewApplication(t *testing.T) {

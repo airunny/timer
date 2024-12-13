@@ -90,9 +90,19 @@ func (s *User) UpdateStatus(ctx context.Context, id string, status v1.UserStatus
 
 func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
-
 	err := s.Session(ctx, opts...).
 		Where("id = ?", id).
+		First(&out).Error
+	if err != nil {
+		return nil, ormhelper.WrapErr(err)
+	}
+	return out, nil
+}
+
+func (s *User) GetByName(ctx context.Context, name, password string, opts ...igorm.Option) (*models.User, error) {
+	var out *models.User
+	err := s.Session(ctx, opts...).
+		Where("name = ? AND password = ?", name, password).
 		First(&out).Error
 	if err != nil {
 		return nil, ormhelper.WrapErr(err)

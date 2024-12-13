@@ -34,6 +34,8 @@ const (
 	Service_ReplayTimer_FullMethodName             = "/api.timer.v1.Service/ReplayTimer"
 	Service_ListTimer_FullMethodName               = "/api.timer.v1.Service/ListTimer"
 	Service_ListTimerCallback_FullMethodName       = "/api.timer.v1.Service/ListTimerCallback"
+	Service_Login_FullMethodName                   = "/api.timer.v1.Service/Login"
+	Service_RefreshToken_FullMethodName            = "/api.timer.v1.Service/RefreshToken"
 	Service_AddUser_FullMethodName                 = "/api.timer.v1.Service/AddUser"
 	Service_GetUser_FullMethodName                 = "/api.timer.v1.Service/GetUser"
 	Service_UpdateUserStatus_FullMethodName        = "/api.timer.v1.Service/UpdateUserStatus"
@@ -45,25 +47,43 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
 	Healthy(ctx context.Context, in *common.EmptyRequest, opts ...grpc.CallOption) (*common.HealthyReply, error)
-	// 应用
+	// 应用[添加]
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	// 应用[删除]
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*DeleteApplicationReply, error)
+	// 应用[更新]
 	UpdateApplication(ctx context.Context, in *UpdateApplicationRequest, opts ...grpc.CallOption) (*UpdateApplicationReply, error)
+	// 应用[更新状态]
 	UpdateApplicationStatus(ctx context.Context, in *UpdateApplicationStatusRequest, opts ...grpc.CallOption) (*UpdateApplicationStatusReply, error)
+	// 应用[详情]
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	// 应用[重新生成秘钥]
 	GenApplicationSecret(ctx context.Context, in *GenApplicationSecretRequest, opts ...grpc.CallOption) (*GenApplicationSecretReply, error)
+	// 应用[列表]
 	ListApplication(ctx context.Context, in *ListApplicationRequest, opts ...grpc.CallOption) (*ListApplicationReply, error)
-	// 定时器
+	// 定时器[添加]
 	AddTimer(ctx context.Context, in *AddTimerRequest, opts ...grpc.CallOption) (*AddTimerReply, error)
+	// 定时器[详情]
 	GetTimer(ctx context.Context, in *GetTimerRequest, opts ...grpc.CallOption) (*Timer, error)
+	// 定时器[移除]
 	RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...grpc.CallOption) (*RevokeTimerReply, error)
+	// 定时器[重放]
 	ReplayTimer(ctx context.Context, in *ReplayTimerRequest, opts ...grpc.CallOption) (*ReplayTimerReply, error)
+	// 定时器[列表]
 	ListTimer(ctx context.Context, in *ListTimerRequest, opts ...grpc.CallOption) (*ListTimerReply, error)
+	// 定时器[回调列表]
 	ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...grpc.CallOption) (*ListTimerCallbackReply, error)
-	// 用户
+	// 用户[登录]
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
+	// 用户[刷新登录token]
+	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenRequest, error)
+	// 用户[添加]
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserReply, error)
+	// 用户[详情]
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
+	// 用户[更新状态]
 	UpdateUserStatus(ctx context.Context, in *UpdateUserStatusRequest, opts ...grpc.CallOption) (*UpdateUserStatusReply, error)
+	// 用户[列表]
 	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserReply, error)
 }
 
@@ -201,6 +221,24 @@ func (c *serviceClient) ListTimerCallback(ctx context.Context, in *ListTimerCall
 	return out, nil
 }
 
+func (c *serviceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
+	out := new(LoginReply)
+	err := c.cc.Invoke(ctx, Service_Login_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenRequest, error) {
+	out := new(RefreshTokenRequest)
+	err := c.cc.Invoke(ctx, Service_RefreshToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *serviceClient) AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserReply, error) {
 	out := new(AddUserReply)
 	err := c.cc.Invoke(ctx, Service_AddUser_FullMethodName, in, out, opts...)
@@ -242,25 +280,43 @@ func (c *serviceClient) ListUser(ctx context.Context, in *ListUserRequest, opts 
 // for forward compatibility
 type ServiceServer interface {
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
-	// 应用
+	// 应用[添加]
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
+	// 应用[删除]
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
+	// 应用[更新]
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error)
+	// 应用[更新状态]
 	UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error)
+	// 应用[详情]
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
+	// 应用[重新生成秘钥]
 	GenApplicationSecret(context.Context, *GenApplicationSecretRequest) (*GenApplicationSecretReply, error)
+	// 应用[列表]
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
-	// 定时器
+	// 定时器[添加]
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
+	// 定时器[详情]
 	GetTimer(context.Context, *GetTimerRequest) (*Timer, error)
+	// 定时器[移除]
 	RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error)
+	// 定时器[重放]
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
+	// 定时器[列表]
 	ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error)
+	// 定时器[回调列表]
 	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
-	// 用户
+	// 用户[登录]
+	Login(context.Context, *LoginRequest) (*LoginReply, error)
+	// 用户[刷新登录token]
+	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenRequest, error)
+	// 用户[添加]
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
+	// 用户[详情]
 	GetUser(context.Context, *GetUserRequest) (*User, error)
+	// 用户[更新状态]
 	UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusReply, error)
+	// 用户[列表]
 	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
 	mustEmbedUnimplementedServiceServer()
 }
@@ -310,6 +366,12 @@ func (UnimplementedServiceServer) ListTimer(context.Context, *ListTimerRequest) 
 }
 func (UnimplementedServiceServer) ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTimerCallback not implemented")
+}
+func (UnimplementedServiceServer) Login(context.Context, *LoginRequest) (*LoginReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedServiceServer) AddUser(context.Context, *AddUserRequest) (*AddUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
@@ -588,6 +650,42 @@ func _Service_ListTimerCallback_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).Login(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_Login_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).Login(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).RefreshToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_RefreshToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Service_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddUserRequest)
 	if err := dec(in); err != nil {
@@ -722,6 +820,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTimerCallback",
 			Handler:    _Service_ListTimerCallback_Handler,
+		},
+		{
+			MethodName: "Login",
+			Handler:    _Service_Login_Handler,
+		},
+		{
+			MethodName: "RefreshToken",
+			Handler:    _Service_RefreshToken_Handler,
 		},
 		{
 			MethodName: "AddUser",

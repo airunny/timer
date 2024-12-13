@@ -12,6 +12,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+func (s *Service) Login(ctx context.Context, in *v1.LoginRequest) (*v1.LoginReply, error) {
+	user, err := s.user.GetByName(ctx, in.Username, in.Password)
+}
+
+func (s *Service) RefreshToken(ctx context.Context, in *v1.RefreshTokenRequest) (*v1.RefreshTokenRequest, error) {
+	return nil, nil
+}
+
 func (s *Service) AddUser(ctx context.Context, in *v1.AddUserRequest) (*v1.AddUserReply, error) {
 	l := log.Context(ctx)
 
@@ -35,6 +43,7 @@ func (s *Service) AddUser(ctx context.Context, in *v1.AddUserRequest) (*v1.AddUs
 		Name:     in.Name,
 		Password: in.Password, // TODO
 		Status:   in.Status,
+		Role:     in.Role,
 	})
 	if err != nil {
 		l.Errorf("user.Add Err:%v", err)
@@ -58,6 +67,7 @@ func (s *Service) GetUser(ctx context.Context, in *v1.GetUserRequest) (*v1.User,
 		Id:        user.ID,
 		Name:      user.Name,
 		Status:    user.Status,
+		Role:      user.Role,
 		CreatedAt: user.CreatedAt.Unix(),
 		UpdatedAt: user.UpdatedAt.Unix(),
 	}, nil
@@ -104,6 +114,7 @@ func (s *Service) userToGRPC(in *models.User) *v1.User {
 	return &v1.User{
 		Id:        in.ID,
 		Name:      in.Name,
+		Role:      in.Role,
 		CreatedAt: in.CreatedAt.Unix(),
 		UpdatedAt: in.UpdatedAt.Unix(),
 		Status:    in.Status,

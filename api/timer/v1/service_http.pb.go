@@ -33,6 +33,8 @@ const OperationServiceListApplication = "/api.timer.v1.Service/ListApplication"
 const OperationServiceListTimer = "/api.timer.v1.Service/ListTimer"
 const OperationServiceListTimerCallback = "/api.timer.v1.Service/ListTimerCallback"
 const OperationServiceListUser = "/api.timer.v1.Service/ListUser"
+const OperationServiceLogin = "/api.timer.v1.Service/Login"
+const OperationServiceRefreshToken = "/api.timer.v1.Service/RefreshToken"
 const OperationServiceReplayTimer = "/api.timer.v1.Service/ReplayTimer"
 const OperationServiceRevokeTimer = "/api.timer.v1.Service/RevokeTimer"
 const OperationServiceUpdateApplication = "/api.timer.v1.Service/UpdateApplication"
@@ -40,26 +42,44 @@ const OperationServiceUpdateApplicationStatus = "/api.timer.v1.Service/UpdateApp
 const OperationServiceUpdateUserStatus = "/api.timer.v1.Service/UpdateUserStatus"
 
 type ServiceHTTPServer interface {
-	// AddApplication 应用
+	// AddApplication 应用[添加]
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
-	// AddTimer 定时器
+	// AddTimer 定时器[添加]
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
-	// AddUser 用户
+	// AddUser 用户[添加]
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
+	// DeleteApplication 应用[删除]
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
+	// GenApplicationSecret 应用[重新生成秘钥]
 	GenApplicationSecret(context.Context, *GenApplicationSecretRequest) (*GenApplicationSecretReply, error)
+	// GetApplication 应用[详情]
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
+	// GetTimer 定时器[详情]
 	GetTimer(context.Context, *GetTimerRequest) (*Timer, error)
+	// GetUser 用户[详情]
 	GetUser(context.Context, *GetUserRequest) (*User, error)
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
+	// ListApplication 应用[列表]
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
+	// ListTimer 定时器[列表]
 	ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error)
+	// ListTimerCallback 定时器[回调列表]
 	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
+	// ListUser 用户[列表]
 	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
+	// Login 用户[登录]
+	Login(context.Context, *LoginRequest) (*LoginReply, error)
+	// RefreshToken 用户[刷新登录token]
+	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenRequest, error)
+	// ReplayTimer 定时器[重放]
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
+	// RevokeTimer 定时器[移除]
 	RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error)
+	// UpdateApplication 应用[更新]
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error)
+	// UpdateApplicationStatus 应用[更新状态]
 	UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error)
+	// UpdateUserStatus 用户[更新状态]
 	UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusReply, error)
 }
 
@@ -79,6 +99,8 @@ func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r.GET("/v1/timer/{id}/replay", _Service_ReplayTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer", _Service_ListTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer/{id}/callback", _Service_ListTimerCallback0_HTTP_Handler(srv))
+	r.POST("/v1/user/login", _Service_Login0_HTTP_Handler(srv))
+	r.GET("/v1/user/refresh", _Service_RefreshToken0_HTTP_Handler(srv))
 	r.POST("/v1/user", _Service_AddUser0_HTTP_Handler(srv))
 	r.GET("/v1/user/{id}", _Service_GetUser0_HTTP_Handler(srv))
 	r.PUT("/v1/user/{id}/status", _Service_UpdateUserStatus0_HTTP_Handler(srv))
@@ -393,6 +415,47 @@ func _Service_ListTimerCallback0_HTTP_Handler(srv ServiceHTTPServer) func(ctx ht
 	}
 }
 
+func _Service_Login0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in LoginRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceLogin)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Login(ctx, req.(*LoginRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*LoginReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Service_RefreshToken0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RefreshTokenRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceRefreshToken)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RefreshToken(ctx, req.(*RefreshTokenRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RefreshTokenRequest)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Service_AddUser0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddUserRequest
@@ -495,6 +558,8 @@ type ServiceHTTPClient interface {
 	ListTimer(ctx context.Context, req *ListTimerRequest, opts ...http.CallOption) (rsp *ListTimerReply, err error)
 	ListTimerCallback(ctx context.Context, req *ListTimerCallbackRequest, opts ...http.CallOption) (rsp *ListTimerCallbackReply, err error)
 	ListUser(ctx context.Context, req *ListUserRequest, opts ...http.CallOption) (rsp *ListUserReply, err error)
+	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
+	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *RefreshTokenRequest, err error)
 	ReplayTimer(ctx context.Context, req *ReplayTimerRequest, opts ...http.CallOption) (rsp *ReplayTimerReply, err error)
 	RevokeTimer(ctx context.Context, req *RevokeTimerRequest, opts ...http.CallOption) (rsp *RevokeTimerReply, err error)
 	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, opts ...http.CallOption) (rsp *UpdateApplicationReply, err error)
@@ -671,6 +736,32 @@ func (c *ServiceHTTPClientImpl) ListUser(ctx context.Context, in *ListUserReques
 	pattern := "/v1/user"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationServiceListUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
+	var out LoginReply
+	pattern := "/v1/user/login"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationServiceLogin))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...http.CallOption) (*RefreshTokenRequest, error) {
+	var out RefreshTokenRequest
+	pattern := "/v1/user/refresh"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationServiceRefreshToken))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

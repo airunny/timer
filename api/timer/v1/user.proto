@@ -6,6 +6,27 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "api/timer/v1;v1";
 
+message LoginRequest {
+  string username = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户名"}];
+  string password = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户密码"}];
+}
+message LoginReply {
+  string access_token = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "登录token"}];
+  int64 expires_in = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "access_token过期时间，单位秒"}];
+  string refresh_token = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token"}];
+  int64 refresh_expires_in = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token过期时间"}];
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token"}];
+}
+
+enum UserRole {
+  Admin = 0; // 管理员
+  ReadWrite = 1; // 读写
+  ReadOnly = 2; // 只读
+}
+
 enum UserStatus {
   UserStatusOff = 0; // 禁用
   UserStatusOn = 1; // 启用
@@ -15,6 +36,7 @@ message AddUserRequest {
   string name = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户名"}];
   string password = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "密码"}];
   UserStatus status = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户状态：0:禁用；1：启用"}];
+  UserRole role = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户角色：0:管理员；1：读写；2：只读"}];
 }
 message AddUserReply {
   string id = 1;
@@ -23,9 +45,10 @@ message AddUserReply {
 message User {
   string  id = 1;
   string name = 2;
-  UserStatus status = 3;
-  int64 created_at = 4;
-  int64 updated_at = 5;
+  UserRole role = 3;
+  UserStatus status = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
 }
 
 message GetUserRequest {

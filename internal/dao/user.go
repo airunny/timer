@@ -5,7 +5,6 @@ import (
 
 	v1 "github.com/airunny/timer/api/timer/v1"
 	"github.com/airunny/timer/internal/models"
-
 	"github.com/airunny/wiki-go-tools/igorm"
 	"github.com/airunny/wiki-go-tools/ormhelper"
 	redis "github.com/go-redis/redis/v8"
@@ -33,7 +32,6 @@ func (s *User) Add(ctx context.Context, in *models.User, opts ...igorm.Option) e
 	if err != nil {
 		return ormhelper.WrapErr(err)
 	}
-
 	return nil
 }
 
@@ -61,8 +59,10 @@ func (s *User) CountByNameWithInclude(ctx context.Context, name, excludeId strin
 	return count, nil
 }
 
-func (s *User) Delete(ctx context.Context, id int64, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).Model(&models.User{}).Delete("id = ?", id).Error
+func (s *User) Delete(ctx context.Context, id string, opts ...igorm.Option) error {
+	err := s.Session(ctx, opts...).
+		Where("id = ?", id).
+		Delete(&models.User{}).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
 	}
@@ -70,7 +70,8 @@ func (s *User) Delete(ctx context.Context, id int64, opts ...igorm.Option) error
 }
 
 func (s *User) Update(ctx context.Context, in *models.User, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).Updates(in).Error
+	err := s.Session(ctx, opts...).
+		Updates(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
 	}
@@ -88,6 +89,20 @@ func (s *User) UpdateStatus(ctx context.Context, id string, status v1.UserStatus
 	return nil
 }
 
+func (s *User) UpdatePassword(ctx context.Context, id, password string, opts ...igorm.Option) error {
+	err := s.Session(ctx, opts...).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"password":        password,
+			"change_password": 1,
+		}).Error
+	if err != nil {
+		return ormhelper.WrapErr(err)
+	}
+	return nil
+}
+
 func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
 	err := s.Session(ctx, opts...).
@@ -99,10 +114,10 @@ func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*model
 	return out, nil
 }
 
-func (s *User) GetByName(ctx context.Context, name, password string, opts ...igorm.Option) (*models.User, error) {
+func (s *User) GetByName(ctx context.Context, name string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
 	err := s.Session(ctx, opts...).
-		Where("name = ? AND password = ?", name, password).
+		Where("name = ?", name).
 		First(&out).Error
 	if err != nil {
 		return nil, ormhelper.WrapErr(err)

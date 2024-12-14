@@ -15,4 +15,5 @@ data:
     read_timeout_seconds: 5
     write_timeout_seconds: 5
 business:
+  name: "timer"
 

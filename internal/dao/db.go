@@ -6,7 +6,6 @@ import (
 
 	"github.com/airunny/timer/api/common"
 	"github.com/airunny/timer/internal/models"
-
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/igorm"
 	"github.com/airunny/wiki-go-tools/iredis"

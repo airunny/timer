@@ -15,6 +15,7 @@ message LoginReply {
   int64 expires_in = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "access_token过期时间，单位秒"}];
   string refresh_token = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token"}];
   int64 refresh_expires_in = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token过期时间"}];
+  bool need_change_password = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "是否需要修改密码"}];
 }
 
 message RefreshTokenRequest {
@@ -71,3 +72,15 @@ message ListUserReply {
   repeated User items = 1;
   string offset = 2;
 }
+
+message UpdateUserPasswordRequest {
+  string id = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+message UpdateUserPasswordReply {}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+message DeleteUserReply {}

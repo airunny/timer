@@ -6,11 +6,11 @@
 package main
 
 import (
-	"timer/api/common"
-	"timer/internal/conf"
-	"timer/internal/dao"
-	"timer/internal/server"
-	"timer/internal/service"
+	"github.com/airunny/timer/api/common"
+	"github.com/airunny/timer/internal/conf"
+	"github.com/airunny/timer/internal/dao"
+	"github.com/airunny/timer/internal/server"
+	"github.com/airunny/timer/internal/service"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	v1 "github.com/airunny/timer/api/timer/v1"
-
 	"gorm.io/gorm"
 )
 

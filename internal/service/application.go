@@ -81,13 +81,18 @@ func (s *Service) UpdateApplicationStatus(ctx context.Context, in *v1.UpdateAppl
 }
 
 func (s *Service) GenApplicationSecret(ctx context.Context, in *v1.GenApplicationSecretRequest) (*v1.GenApplicationSecretReply, error) {
-	l := log.Context(ctx)
-	err := s.application.UpdateSecret(ctx, in.Id, s.generateApplicationSecret(in.Id))
+	var (
+		l      = log.Context(ctx)
+		secret = s.generateApplicationSecret(in.Id)
+	)
+	err := s.application.UpdateSecret(ctx, in.Id, secret)
 	if err != nil {
 		l.Errorf("UpdateSecret Err:%v", err)
 		return nil, err
 	}
-	return &v1.GenApplicationSecretReply{}, nil
+	return &v1.GenApplicationSecretReply{
+		Secret: secret,
+	}, nil
 }
 
 func (s *Service) DeleteApplication(ctx context.Context, in *v1.DeleteApplicationRequest) (*v1.DeleteApplicationReply, error) {

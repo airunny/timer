@@ -11,6 +11,7 @@ import (
 	v1 "github.com/airunny/timer/api/timer/v1"
 	innerErr "github.com/airunny/timer/errors"
 	"github.com/airunny/timer/internal/models"
+	"github.com/airunny/timer/pkg/icontext"
 	"github.com/airunny/timer/pkg/jwt"
 	"github.com/airunny/wiki-go-tools/ormhelper"
 	"github.com/go-kratos/kratos/v2/log"
@@ -92,6 +93,24 @@ func (s *Service) RefreshToken(ctx context.Context, in *v1.RefreshTokenRequest) 
 		RefreshToken:     token.RefreshToken,
 		RefreshExpiresIn: token.RefreshExpiresIn,
 	}, nil
+}
+
+func (s *Service) UpdatePassword(ctx context.Context, in *v1.UpdatePasswordRequest) (*v1.UpdatePasswordReply, error) {
+	var (
+		l         = log.Context(ctx)
+		userId, _ = icontext.UserIdFrom(ctx)
+	)
+
+	_, err := s.UpdateUserPassword(ctx, &v1.UpdateUserPasswordRequest{
+		Id:          userId,
+		OldPassword: in.OldPassword,
+		NewPassword: in.NewPassword,
+	})
+	if err != nil {
+		l.Errorf("UpdateUserPassword Err:%v", err)
+		return nil, err
+	}
+	return &v1.UpdatePasswordReply{}, nil
 }
 
 func (s *Service) generateToken(ctx context.Context, user *models.User) (*models.Token, error) {

@@ -1,19 +1,18 @@
 server:
   grpc:
-    addr: 127.0.0.1:9090
+    addr: :9090
     timeout_seconds: 5
   http:
-    addr: 127.0.0.1:8080
+    addr: :8080
     timeout_seconds: 5
 data:
   database:
     driver: mysql
-    source: root:yann@tcp(127.0.0.1:3306)/wikistock?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&loc=Local
+    source: root:yann@tcp(mysql:3306)/timer?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&loc=Local
     level: 4
   redis:
-    address: 127.0.0.1:6379
+    address: redis:6379
     read_timeout_seconds: 5
     write_timeout_seconds: 5
 business:
   name: "timer"
-

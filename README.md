@@ -1,4 +1,4 @@
-# WikiGlobal Golang微服务项目模板 
+# Golang微服务项目模板 
 
 ## 安装 Kratos
 ```
@@ -27,8 +27,7 @@ kratos run
 ## 项目结构说明2
 #### 目前整个公司层名将整体proto作为一个单独仓库独立了出去，如果想把项目的proto也拉进整体的proto则需要做如下处理
 ```
-make proto  // 获取整体proto的依赖，执行改命令之后会在项目目录下多出来一个wiki_protos文件夹，内部是公司所有的protos文件
-rm -rf ./third_parth // 删除项目中的 third_party 文件；因为在wiki_protos 已经添加了三方的依赖；所以不再需要该文件
+make api // 根据protos生成对应代码 
 ```
 
 ## 构建镜像 

@@ -23,6 +23,7 @@ const (
 	Service_Healthy_FullMethodName                 = "/api.timer.v1.Service/Healthy"
 	Service_Login_FullMethodName                   = "/api.timer.v1.Service/Login"
 	Service_RefreshToken_FullMethodName            = "/api.timer.v1.Service/RefreshToken"
+	Service_UpdatePassword_FullMethodName          = "/api.timer.v1.Service/UpdatePassword"
 	Service_AddApplication_FullMethodName          = "/api.timer.v1.Service/AddApplication"
 	Service_DeleteApplication_FullMethodName       = "/api.timer.v1.Service/DeleteApplication"
 	Service_UpdateApplication_FullMethodName       = "/api.timer.v1.Service/UpdateApplication"
@@ -49,10 +50,12 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
 	Healthy(ctx context.Context, in *common.EmptyRequest, opts ...grpc.CallOption) (*common.HealthyReply, error)
-	// 用户[登录]
+	// 登录
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
-	// 用户[刷新登录token]
+	// 刷新登录token
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginReply, error)
+	// 更新密码，用户自己
+	UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...grpc.CallOption) (*UpdatePasswordReply, error)
 	// 应用[添加]
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	// 应用[删除]
@@ -122,6 +125,15 @@ func (c *serviceClient) Login(ctx context.Context, in *LoginRequest, opts ...grp
 func (c *serviceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginReply, error) {
 	out := new(LoginReply)
 	err := c.cc.Invoke(ctx, Service_RefreshToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...grpc.CallOption) (*UpdatePasswordReply, error) {
+	out := new(UpdatePasswordReply)
+	err := c.cc.Invoke(ctx, Service_UpdatePassword_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -304,10 +316,12 @@ func (c *serviceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, o
 // for forward compatibility
 type ServiceServer interface {
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
-	// 用户[登录]
+	// 登录
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	// 用户[刷新登录token]
+	// 刷新登录token
 	RefreshToken(context.Context, *RefreshTokenRequest) (*LoginReply, error)
+	// 更新密码，用户自己
+	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordReply, error)
 	// 应用[添加]
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
 	// 应用[删除]
@@ -361,6 +375,9 @@ func (UnimplementedServiceServer) Login(context.Context, *LoginRequest) (*LoginR
 }
 func (UnimplementedServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*LoginReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
+}
+func (UnimplementedServiceServer) UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePassword not implemented")
 }
 func (UnimplementedServiceServer) AddApplication(context.Context, *AddApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
@@ -482,6 +499,24 @@ func _Service_RefreshToken_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_UpdatePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).UpdatePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_UpdatePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).UpdatePassword(ctx, req.(*UpdatePasswordRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -846,6 +881,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _Service_RefreshToken_Handler,
+		},
+		{
+			MethodName: "UpdatePassword",
+			Handler:    _Service_UpdatePassword_Handler,
 		},
 		{
 			MethodName: "AddApplication",

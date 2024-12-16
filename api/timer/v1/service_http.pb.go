@@ -40,6 +40,7 @@ const OperationServiceReplayTimer = "/api.timer.v1.Service/ReplayTimer"
 const OperationServiceRevokeTimer = "/api.timer.v1.Service/RevokeTimer"
 const OperationServiceUpdateApplication = "/api.timer.v1.Service/UpdateApplication"
 const OperationServiceUpdateApplicationStatus = "/api.timer.v1.Service/UpdateApplicationStatus"
+const OperationServiceUpdatePassword = "/api.timer.v1.Service/UpdatePassword"
 const OperationServiceUpdateUserPassword = "/api.timer.v1.Service/UpdateUserPassword"
 const OperationServiceUpdateUserStatus = "/api.timer.v1.Service/UpdateUserStatus"
 
@@ -71,9 +72,9 @@ type ServiceHTTPServer interface {
 	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
 	// ListUser 用户[列表]
 	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
-	// Login 用户[登录]
+	// Login 登录
 	Login(context.Context, *LoginRequest) (*LoginReply, error)
-	// RefreshToken 用户[刷新登录token]
+	// RefreshToken 刷新登录token
 	RefreshToken(context.Context, *RefreshTokenRequest) (*LoginReply, error)
 	// ReplayTimer 定时器[重放]
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
@@ -83,6 +84,8 @@ type ServiceHTTPServer interface {
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error)
 	// UpdateApplicationStatus 应用[更新状态]
 	UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error)
+	// UpdatePassword 更新密码，用户自己
+	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordReply, error)
 	// UpdateUserPassword 用户[更新密码]
 	UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UpdateUserPasswordReply, error)
 	// UpdateUserStatus 用户[更新状态]
@@ -94,6 +97,7 @@ func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r.GET("/healthz", _Service_Healthy0_HTTP_Handler(srv))
 	r.POST("/v1/user/login", _Service_Login0_HTTP_Handler(srv))
 	r.GET("/v1/user/refresh", _Service_RefreshToken0_HTTP_Handler(srv))
+	r.PUT("/v1/user/password", _Service_UpdatePassword0_HTTP_Handler(srv))
 	r.POST("/v1/app", _Service_AddApplication0_HTTP_Handler(srv))
 	r.DELETE("/v1/app/{id}", _Service_DeleteApplication0_HTTP_Handler(srv))
 	r.PUT("/v1/app/{id}", _Service_UpdateApplication0_HTTP_Handler(srv))
@@ -171,6 +175,28 @@ func _Service_RefreshToken0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Co
 			return err
 		}
 		reply := out.(*LoginReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Service_UpdatePassword0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePasswordRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceUpdatePassword)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePassword(ctx, req.(*UpdatePasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdatePasswordReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -620,6 +646,7 @@ type ServiceHTTPClient interface {
 	RevokeTimer(ctx context.Context, req *RevokeTimerRequest, opts ...http.CallOption) (rsp *RevokeTimerReply, err error)
 	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, opts ...http.CallOption) (rsp *UpdateApplicationReply, err error)
 	UpdateApplicationStatus(ctx context.Context, req *UpdateApplicationStatusRequest, opts ...http.CallOption) (rsp *UpdateApplicationStatusReply, err error)
+	UpdatePassword(ctx context.Context, req *UpdatePasswordRequest, opts ...http.CallOption) (rsp *UpdatePasswordReply, err error)
 	UpdateUserPassword(ctx context.Context, req *UpdateUserPasswordRequest, opts ...http.CallOption) (rsp *UpdateUserPasswordReply, err error)
 	UpdateUserStatus(ctx context.Context, req *UpdateUserStatusRequest, opts ...http.CallOption) (rsp *UpdateUserStatusReply, err error)
 }
@@ -884,6 +911,19 @@ func (c *ServiceHTTPClientImpl) UpdateApplicationStatus(ctx context.Context, in 
 	pattern := "/v1/app/{id}/status"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationServiceUpdateApplicationStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...http.CallOption) (*UpdatePasswordReply, error) {
+	var out UpdatePasswordReply
+	pattern := "/v1/user/password"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationServiceUpdatePassword))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

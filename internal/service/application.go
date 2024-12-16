@@ -2,6 +2,10 @@ package service
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -30,32 +34,27 @@ func (s *Service) AddApplication(ctx context.Context, in *v1.AddApplicationReque
 	}
 
 	var (
-		newId = objectid.ObjectID()
-		now   = time.Now()
+		newId  = objectid.ObjectID()
+		now    = time.Now()
+		secret = s.generateApplicationSecret(newId)
+		newApp = &models.Application{
+			ID:            newId,
+			Name:          in.Name,
+			Description:   in.Description,
+			Secret:        secret,
+			Authorization: in.Authentication,
+			Status:        in.Status,
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		}
 	)
 
-	err = s.application.Add(ctx, &models.Application{
-		ID:            newId,
-		Name:          in.Name,
-		Description:   in.Description,
-		Secret:        "", // TODO
-		Authorization: in.Authentication,
-		Status:        in.Status,
-	})
+	err = s.application.Add(ctx, newApp)
 	if err != nil {
 		l.Errorf("application.Add Err:%v", err)
 		return nil, err
 	}
-
-	return &v1.Application{
-		Id:             newId,
-		Name:           in.Name,
-		Description:    in.Description,
-		CreatedAt:      now.Unix(),
-		Secret:         "", // TODO
-		UpdatedAt:      now.Unix(),
-		Authentication: in.Authentication,
-	}, nil
+	return s.applicationToGRPC(newApp), nil
 }
 
 func (s *Service) GetApplication(ctx context.Context, in *v1.GetApplicationRequest) (*v1.Application, error) {
@@ -66,7 +65,6 @@ func (s *Service) GetApplication(ctx context.Context, in *v1.GetApplicationReque
 		l.Errorf("application.Get Err:%v", err)
 		return nil, err
 	}
-
 	return s.applicationToGRPC(application), nil
 }
 
@@ -77,7 +75,6 @@ func (s *Service) UpdateApplicationStatus(ctx context.Context, in *v1.UpdateAppl
 		l.Errorf("UpdateStatus Err:%v", err)
 		return nil, err
 	}
-
 	return &v1.UpdateApplicationStatusReply{
 		Status: in.Status,
 	}, nil
@@ -85,13 +82,11 @@ func (s *Service) UpdateApplicationStatus(ctx context.Context, in *v1.UpdateAppl
 
 func (s *Service) GenApplicationSecret(ctx context.Context, in *v1.GenApplicationSecretRequest) (*v1.GenApplicationSecretReply, error) {
 	l := log.Context(ctx)
-	// TODO
-	err := s.application.UpdateSecret(ctx, in.Id, "")
+	err := s.application.UpdateSecret(ctx, in.Id, s.generateApplicationSecret(in.Id))
 	if err != nil {
 		l.Errorf("UpdateSecret Err:%v", err)
 		return nil, err
 	}
-
 	return &v1.GenApplicationSecretReply{}, nil
 }
 
@@ -102,7 +97,6 @@ func (s *Service) DeleteApplication(ctx context.Context, in *v1.DeleteApplicatio
 		l.Errorf("Delete Err:%v", err)
 		return nil, err
 	}
-
 	return &v1.DeleteApplicationReply{}, nil
 }
 
@@ -110,7 +104,7 @@ func (s *Service) UpdateApplication(ctx context.Context, in *v1.UpdateApplicatio
 	l := log.Context(ctx)
 
 	if strings.TrimSpace(in.Name) == "" {
-		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name 不能为空")
+		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name can not be empty")
 	}
 
 	nameCount, err := s.application.CountByNameWithInclude(ctx, in.Name, in.Id)
@@ -120,14 +114,13 @@ func (s *Service) UpdateApplication(ctx context.Context, in *v1.UpdateApplicatio
 	}
 
 	if nameCount > 0 {
-		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name 已存在")
+		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name already exists")
 	}
 
 	err = s.application.Update(ctx, &models.Application{
 		ID:            in.Id,
 		Name:          in.Name,
 		Description:   in.Description,
-		Secret:        "", // TODO
 		Authorization: in.Authentication,
 		Status:        in.Status,
 	})
@@ -135,7 +128,6 @@ func (s *Service) UpdateApplication(ctx context.Context, in *v1.UpdateApplicatio
 		l.Errorf("Update Err:%v", err)
 		return nil, err
 	}
-
 	return &v1.UpdateApplicationReply{}, nil
 }
 
@@ -156,7 +148,6 @@ func (s *Service) ListApplication(ctx context.Context, in *v1.ListApplicationReq
 	for _, value := range values {
 		items = append(items, s.applicationToGRPC(value))
 	}
-
 	return &v1.ListApplicationReply{
 		Items:  items,
 		Offset: newOffset,
@@ -174,4 +165,10 @@ func (s *Service) applicationToGRPC(in *models.Application) *v1.Application {
 		Authentication: in.Authorization,
 		Status:         in.Status,
 	}
+}
+
+func (s *Service) generateApplicationSecret(id string) string {
+	h := md5.New()
+	h.Write([]byte(fmt.Sprintf("%s:%d:%d", id, time.Now().Unix(), rand.Int63())))
+	return hex.EncodeToString(h.Sum(nil))
 }

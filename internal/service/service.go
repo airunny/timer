@@ -46,15 +46,15 @@ func NewService(
 ) (*Service, func()) {
 	var (
 		producer *ikafka.Producer
-		//err      error
+		err      error
 	)
 
-	//if business.KAFKA != nil {
-	//	producer, err = ikafka.NewProducer(business.KAFKA)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//}
+	if business.KAFKA != nil {
+		producer, err = ikafka.NewProducer(business.KAFKA)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	if business.JWT == nil {
 		business.JWT = &jwt.Config{

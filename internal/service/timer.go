@@ -28,7 +28,7 @@ func (s *Service) AddTimer(ctx context.Context, in *v1.AddTimerRequest) (*v1.Add
 	}
 
 	if in.CallbackType == v1.CallbackType_KAFKA && s.producer == nil {
-		return nil, errors.WithMessage(errors.ErrBadRequest, "not support kafka,please add kafka configuration")
+		return nil, errors.WithMessage(errors.ErrBadRequest, "kafka not supported ,please add kafka configuration")
 	}
 
 	newId := objectid.ObjectID()
@@ -68,7 +68,6 @@ func (s *Service) GetTimer(ctx context.Context, in *v1.GetTimerRequest) (*v1.Tim
 	if ttl < 0 {
 		ttl = -1
 	}
-
 	return s.timerToGRPC(timer), nil
 }
 

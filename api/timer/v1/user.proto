@@ -22,6 +22,12 @@ message RefreshTokenRequest {
   string refresh_token = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "刷新token"}];
 }
 
+message UpdatePasswordRequest {
+  string old_password = 2;
+  string new_password = 3;
+}
+message UpdatePasswordReply {}
+
 enum UserRole {
   Admin = 0; // 管理员
   ReadWrite = 1; // 读写

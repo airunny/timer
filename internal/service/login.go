@@ -27,7 +27,7 @@ func (s *Service) Login(ctx context.Context, in *v1.LoginRequest) (*v1.LoginRepl
 	}
 
 	if err != nil {
-		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name or password is invalid")
+		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name or password incorrect")
 	}
 
 	if user.Status != v1.UserStatus_UserStatusOn {
@@ -36,7 +36,7 @@ func (s *Service) Login(ctx context.Context, in *v1.LoginRequest) (*v1.LoginRepl
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(in.Password))
 	if err != nil {
-		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name or password is invalid")
+		return nil, innerErr.WithMessage(innerErr.ErrBadRequest, "name or password incorrect")
 	}
 
 	token, err := s.generateToken(ctx, user)

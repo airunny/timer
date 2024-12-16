@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	v1 "github.com/airunny/timer/api/timer/v1"
 	innErr "github.com/airunny/timer/errors"
 	"github.com/airunny/timer/internal/service"
+	"github.com/airunny/timer/pkg/icontext"
 	"github.com/airunny/wiki-go-tools/env"
 	"github.com/airunny/wiki-go-tools/ilog"
 	"github.com/airunny/wiki-go-tools/metrics"
@@ -106,12 +108,13 @@ func ParseToken(svc *service.Service) kratosMid.Middleware {
 				}
 				return handler(ctx, req)
 			}
-
 			// 做权限校验
 			err = verifyRole(tr.Operation(), v1.UserRole(ac.Role))
 			if err != nil {
 				return nil, err
 			}
+			ctx = icontext.WithUserId(ctx, ac.ID)
+			ctx = icontext.WithRole(ctx, strconv.Itoa(ac.Role))
 			return handler(ctx, req)
 		}
 	}

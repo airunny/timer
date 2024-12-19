@@ -7,9 +7,8 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 option go_package = "api/timer/v1;v1";
 
 enum CallbackType {
-  UNKNOWN = 0; // 非法值
-  HTTP = 1; // http
-  KAFKA = 2; // 消息队列
+  HTTP = 0; // http
+  KAFKA = 1; // 消息队列
 }
 enum TimerStatus {
   DISABLE = 0; // 未激活
@@ -17,7 +16,7 @@ enum TimerStatus {
 }
 enum ParamsIn {
   HEADER = 0; // 请求头
-  QUERY = 2; // query
+  QUERY = 1; // query
 }
 enum TimerType {
   ONCE = 0; // 一次性定时器

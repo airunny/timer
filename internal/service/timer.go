@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"net/url"
+	"regexp"
 	"time"
 
 	v1 "github.com/airunny/timer/api/timer/v1"
@@ -9,7 +11,10 @@ import (
 	"github.com/airunny/timer/internal/models"
 	"github.com/airunny/wiki-go-tools/objectid"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/gorhill/cronexpr"
 )
+
+var topicReg = regexp.MustCompile(`^(?!-|\.) (?!.*--)(?!.*\.\.)(?!.*-$)(?!.*\.$)[\w.-]{1,249}$`)
 
 func (s *Service) AddTimer(ctx context.Context, in *v1.AddTimerRequest) (*v1.AddTimerReply, error) {
 	var (
@@ -17,20 +22,40 @@ func (s *Service) AddTimer(ctx context.Context, in *v1.AddTimerRequest) (*v1.Add
 		now = time.Now()
 	)
 
-	// 不能小于1分钟内
-	if in.ExpireAt <= now.Add(time.Minute).Unix() {
-		return nil, errors.WithMessage(errors.ErrBadRequest, "the interval cannot be less than one minute")
+	switch in.Type {
+	case v1.TimerType_ONCE:
+		// 不能小于1分钟内
+		if in.ExpireAt <= now.Add(time.Minute).Unix() {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "the interval cannot be less than one minute")
+		}
+	case v1.TimerType_CRONJOB:
+		cron, err := cronexpr.Parse(in.CronExpr)
+		if err != nil {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "cron_expr is invalid")
+		}
+
+		nextTime := cron.Next(now)
+		if nextTime.Unix() <= now.Unix()+60 {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "the interval cannot be less than one minute")
+		}
 	}
 
-	if in.CallbackType <= 0 {
-		return nil, errors.ErrBadRequest
+	switch in.CallbackType {
+	case v1.CallbackType_HTTP:
+		_, err := url.Parse(in.CallbackAddress)
+		if err != nil {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "invalid callback_address")
+		}
+	case v1.CallbackType_KAFKA:
+		if s.producer == nil {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "kafka not supported ,please add kafka configuration")
+		}
+
+		if !topicReg.MatchString(in.CallbackAddress) {
+			return nil, errors.WithMessage(errors.ErrBadRequest, "invalid topic")
+		}
 	}
 
-	if in.CallbackType == v1.CallbackType_KAFKA && s.producer == nil {
-		return nil, errors.WithMessage(errors.ErrBadRequest, "kafka not supported ,please add kafka configuration")
-	}
-
-	// TODO 参数校验
 	newId := objectid.ObjectID()
 	err := s.timer.Add(ctx, &models.Timer{
 		ID:              newId,
@@ -151,7 +176,7 @@ func (s *Service) ListTimerCallback(ctx context.Context, in *v1.ListTimerCallbac
 }
 
 func (s *Service) timerToGRPC(in *models.Timer) *v1.Timer {
-	ttl := time.Now().Unix() - in.ExpireAt
+	ttl := in.ExpireAt - time.Now().Unix()
 	if ttl < 0 {
 		ttl = -1
 	}

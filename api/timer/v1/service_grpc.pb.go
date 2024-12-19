@@ -33,7 +33,8 @@ const (
 	Service_ListApplication_FullMethodName         = "/api.timer.v1.Service/ListApplication"
 	Service_AddTimer_FullMethodName                = "/api.timer.v1.Service/AddTimer"
 	Service_GetTimer_FullMethodName                = "/api.timer.v1.Service/GetTimer"
-	Service_RevokeTimer_FullMethodName             = "/api.timer.v1.Service/RevokeTimer"
+	Service_UpdateTimerStatus_FullMethodName       = "/api.timer.v1.Service/UpdateTimerStatus"
+	Service_DeleteTimer_FullMethodName             = "/api.timer.v1.Service/DeleteTimer"
 	Service_ReplayTimer_FullMethodName             = "/api.timer.v1.Service/ReplayTimer"
 	Service_ListTimer_FullMethodName               = "/api.timer.v1.Service/ListTimer"
 	Service_ListTimerCallback_FullMethodName       = "/api.timer.v1.Service/ListTimerCallback"
@@ -74,8 +75,10 @@ type ServiceClient interface {
 	AddTimer(ctx context.Context, in *AddTimerRequest, opts ...grpc.CallOption) (*AddTimerReply, error)
 	// 定时器[详情]
 	GetTimer(ctx context.Context, in *GetTimerRequest, opts ...grpc.CallOption) (*Timer, error)
+	// 定时器[更新状态]
+	UpdateTimerStatus(ctx context.Context, in *UpdateTimerStatusRequest, opts ...grpc.CallOption) (*UpdateTimerStatusReply, error)
 	// 定时器[移除]
-	RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...grpc.CallOption) (*RevokeTimerReply, error)
+	DeleteTimer(ctx context.Context, in *DeleteTimerRequest, opts ...grpc.CallOption) (*DeleteTimerReply, error)
 	// 定时器[重放]
 	ReplayTimer(ctx context.Context, in *ReplayTimerRequest, opts ...grpc.CallOption) (*ReplayTimerReply, error)
 	// 定时器[列表]
@@ -221,9 +224,18 @@ func (c *serviceClient) GetTimer(ctx context.Context, in *GetTimerRequest, opts 
 	return out, nil
 }
 
-func (c *serviceClient) RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...grpc.CallOption) (*RevokeTimerReply, error) {
-	out := new(RevokeTimerReply)
-	err := c.cc.Invoke(ctx, Service_RevokeTimer_FullMethodName, in, out, opts...)
+func (c *serviceClient) UpdateTimerStatus(ctx context.Context, in *UpdateTimerStatusRequest, opts ...grpc.CallOption) (*UpdateTimerStatusReply, error) {
+	out := new(UpdateTimerStatusReply)
+	err := c.cc.Invoke(ctx, Service_UpdateTimerStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) DeleteTimer(ctx context.Context, in *DeleteTimerRequest, opts ...grpc.CallOption) (*DeleteTimerReply, error) {
+	out := new(DeleteTimerReply)
+	err := c.cc.Invoke(ctx, Service_DeleteTimer_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -340,8 +352,10 @@ type ServiceServer interface {
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
 	// 定时器[详情]
 	GetTimer(context.Context, *GetTimerRequest) (*Timer, error)
+	// 定时器[更新状态]
+	UpdateTimerStatus(context.Context, *UpdateTimerStatusRequest) (*UpdateTimerStatusReply, error)
 	// 定时器[移除]
-	RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error)
+	DeleteTimer(context.Context, *DeleteTimerRequest) (*DeleteTimerReply, error)
 	// 定时器[重放]
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
 	// 定时器[列表]
@@ -406,8 +420,11 @@ func (UnimplementedServiceServer) AddTimer(context.Context, *AddTimerRequest) (*
 func (UnimplementedServiceServer) GetTimer(context.Context, *GetTimerRequest) (*Timer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTimer not implemented")
 }
-func (UnimplementedServiceServer) RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RevokeTimer not implemented")
+func (UnimplementedServiceServer) UpdateTimerStatus(context.Context, *UpdateTimerStatusRequest) (*UpdateTimerStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTimerStatus not implemented")
+}
+func (UnimplementedServiceServer) DeleteTimer(context.Context, *DeleteTimerRequest) (*DeleteTimerReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTimer not implemented")
 }
 func (UnimplementedServiceServer) ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReplayTimer not implemented")
@@ -683,20 +700,38 @@ func _Service_GetTimer_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_RevokeTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RevokeTimerRequest)
+func _Service_UpdateTimerStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTimerStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).RevokeTimer(ctx, in)
+		return srv.(ServiceServer).UpdateTimerStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_RevokeTimer_FullMethodName,
+		FullMethod: Service_UpdateTimerStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).RevokeTimer(ctx, req.(*RevokeTimerRequest))
+		return srv.(ServiceServer).UpdateTimerStatus(ctx, req.(*UpdateTimerStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_DeleteTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTimerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).DeleteTimer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_DeleteTimer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).DeleteTimer(ctx, req.(*DeleteTimerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -923,8 +958,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_GetTimer_Handler,
 		},
 		{
-			MethodName: "RevokeTimer",
-			Handler:    _Service_RevokeTimer_Handler,
+			MethodName: "UpdateTimerStatus",
+			Handler:    _Service_UpdateTimerStatus_Handler,
+		},
+		{
+			MethodName: "DeleteTimer",
+			Handler:    _Service_DeleteTimer_Handler,
 		},
 		{
 			MethodName: "ReplayTimer",

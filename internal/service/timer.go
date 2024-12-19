@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	v1 "github.com/airunny/timer/api/timer/v1"
@@ -31,15 +30,19 @@ func (s *Service) AddTimer(ctx context.Context, in *v1.AddTimerRequest) (*v1.Add
 		return nil, errors.WithMessage(errors.ErrBadRequest, "kafka not supported ,please add kafka configuration")
 	}
 
+	// TODO 参数校验
 	newId := objectid.ObjectID()
 	err := s.timer.Add(ctx, &models.Timer{
 		ID:              newId,
 		AppId:           in.AppId,
-		ExpireAt:        in.ExpireAt,
-		Attach:          in.Attach,
+		Name:            in.Name,
+		Type:            in.Type,
 		CallbackType:    in.CallbackType,
 		CallbackAddress: in.CallbackAddress,
-		Status:          v1.TimerStatus_PROCESSING,
+		CronExpr:        in.CronExpr,
+		ExpireAt:        in.ExpireAt,
+		Attach:          in.Attach,
+		Status:          in.Status,
 		Extra: &models.TimerExtra{
 			Params: in.Params,
 		},
@@ -71,14 +74,24 @@ func (s *Service) GetTimer(ctx context.Context, in *v1.GetTimerRequest) (*v1.Tim
 	return s.timerToGRPC(timer), nil
 }
 
-func (s *Service) RevokeTimer(ctx context.Context, in *v1.RevokeTimerRequest) (*v1.RevokeTimerReply, error) {
+func (s *Service) UpdateTimerStatus(ctx context.Context, in *v1.UpdateTimerStatusRequest) (*v1.UpdateTimerStatusReply, error) {
 	l := log.Context(ctx)
-	err := s.timer.UpdateStatus(ctx, in.Id, v1.TimerStatus_REVOKED)
+	err := s.timer.UpdateStatus(ctx, in.Id, in.Status)
 	if err != nil {
 		l.Errorf("timer.UpdateStatus Err:%v", err)
 		return nil, err
 	}
-	return &v1.RevokeTimerReply{}, nil
+	return &v1.UpdateTimerStatusReply{}, nil
+}
+
+func (s *Service) DeleteTimer(ctx context.Context, in *v1.DeleteTimerRequest) (*v1.DeleteTimerReply, error) {
+	l := log.Context(ctx)
+	err := s.timer.Delete(ctx, in.Id)
+	if err != nil {
+		l.Errorf("timer.UpdateStatus Err:%v", err)
+		return nil, err
+	}
+	return &v1.DeleteTimerReply{}, nil
 }
 
 func (s *Service) ReplayTimer(ctx context.Context, in *v1.ReplayTimerRequest) (*v1.ReplayTimerReply, error) {
@@ -145,13 +158,19 @@ func (s *Service) timerToGRPC(in *models.Timer) *v1.Timer {
 
 	return &v1.Timer{
 		Id:                    in.ID,
+		AppId:                 in.AppId,
+		Name:                  in.Name,
+		Type:                  in.Type,
 		CallbackType:          in.CallbackType,
+		CallbackAddress:       in.CallbackAddress,
+		CronExpr:              in.CronExpr,
 		ExpireAt:              in.ExpireAt,
 		Attach:                in.Attach,
-		CallbackAddress:       in.CallbackAddress,
 		Ttl:                   ttl,
-		Retry:                 in.RetryCount,
-		CallbackFailedReasons: strings.Split(in.FailReason, ";"),
+		Fail:                  in.Fail,
+		Success:               in.Success,
+		CallbackFailedReasons: in.Extra.FailReason,
 		Params:                in.Extra.Params,
+		Status:                in.Status,
 	}
 }

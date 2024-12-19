@@ -24,6 +24,7 @@ const OperationServiceAddApplication = "/api.timer.v1.Service/AddApplication"
 const OperationServiceAddTimer = "/api.timer.v1.Service/AddTimer"
 const OperationServiceAddUser = "/api.timer.v1.Service/AddUser"
 const OperationServiceDeleteApplication = "/api.timer.v1.Service/DeleteApplication"
+const OperationServiceDeleteTimer = "/api.timer.v1.Service/DeleteTimer"
 const OperationServiceDeleteUser = "/api.timer.v1.Service/DeleteUser"
 const OperationServiceGenApplicationSecret = "/api.timer.v1.Service/GenApplicationSecret"
 const OperationServiceGetApplication = "/api.timer.v1.Service/GetApplication"
@@ -37,10 +38,10 @@ const OperationServiceListUser = "/api.timer.v1.Service/ListUser"
 const OperationServiceLogin = "/api.timer.v1.Service/Login"
 const OperationServiceRefreshToken = "/api.timer.v1.Service/RefreshToken"
 const OperationServiceReplayTimer = "/api.timer.v1.Service/ReplayTimer"
-const OperationServiceRevokeTimer = "/api.timer.v1.Service/RevokeTimer"
 const OperationServiceUpdateApplication = "/api.timer.v1.Service/UpdateApplication"
 const OperationServiceUpdateApplicationStatus = "/api.timer.v1.Service/UpdateApplicationStatus"
 const OperationServiceUpdatePassword = "/api.timer.v1.Service/UpdatePassword"
+const OperationServiceUpdateTimerStatus = "/api.timer.v1.Service/UpdateTimerStatus"
 const OperationServiceUpdateUserPassword = "/api.timer.v1.Service/UpdateUserPassword"
 const OperationServiceUpdateUserStatus = "/api.timer.v1.Service/UpdateUserStatus"
 
@@ -53,6 +54,8 @@ type ServiceHTTPServer interface {
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
 	// DeleteApplication 应用[删除]
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
+	// DeleteTimer 定时器[移除]
+	DeleteTimer(context.Context, *DeleteTimerRequest) (*DeleteTimerReply, error)
 	// DeleteUser 用户[删除]
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error)
 	// GenApplicationSecret 应用[重新生成秘钥]
@@ -78,14 +81,14 @@ type ServiceHTTPServer interface {
 	RefreshToken(context.Context, *RefreshTokenRequest) (*LoginReply, error)
 	// ReplayTimer 定时器[重放]
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
-	// RevokeTimer 定时器[移除]
-	RevokeTimer(context.Context, *RevokeTimerRequest) (*RevokeTimerReply, error)
 	// UpdateApplication 应用[更新]
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationReply, error)
 	// UpdateApplicationStatus 应用[更新状态]
 	UpdateApplicationStatus(context.Context, *UpdateApplicationStatusRequest) (*UpdateApplicationStatusReply, error)
 	// UpdatePassword 更新密码，用户自己
 	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordReply, error)
+	// UpdateTimerStatus 定时器[更新状态]
+	UpdateTimerStatus(context.Context, *UpdateTimerStatusRequest) (*UpdateTimerStatusReply, error)
 	// UpdateUserPassword 用户[更新密码]
 	UpdateUserPassword(context.Context, *UpdateUserPasswordRequest) (*UpdateUserPasswordReply, error)
 	// UpdateUserStatus 用户[更新状态]
@@ -95,9 +98,9 @@ type ServiceHTTPServer interface {
 func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r := s.Route("/")
 	r.GET("/healthz", _Service_Healthy0_HTTP_Handler(srv))
-	r.POST("/v1/user/login", _Service_Login0_HTTP_Handler(srv))
-	r.GET("/v1/user/refresh", _Service_RefreshToken0_HTTP_Handler(srv))
-	r.PUT("/v1/user/password", _Service_UpdatePassword0_HTTP_Handler(srv))
+	r.POST("/v1/login", _Service_Login0_HTTP_Handler(srv))
+	r.GET("/v1/refresh", _Service_RefreshToken0_HTTP_Handler(srv))
+	r.PUT("/v1/password", _Service_UpdatePassword0_HTTP_Handler(srv))
 	r.POST("/v1/app", _Service_AddApplication0_HTTP_Handler(srv))
 	r.DELETE("/v1/app/{id}", _Service_DeleteApplication0_HTTP_Handler(srv))
 	r.PUT("/v1/app/{id}", _Service_UpdateApplication0_HTTP_Handler(srv))
@@ -107,7 +110,8 @@ func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r.GET("/v1/app", _Service_ListApplication0_HTTP_Handler(srv))
 	r.POST("/v1/timer", _Service_AddTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer/{id}", _Service_GetTimer0_HTTP_Handler(srv))
-	r.GET("/v1/timer/{id}/invoke", _Service_RevokeTimer0_HTTP_Handler(srv))
+	r.PUT("/v1/timer/{id}/status", _Service_UpdateTimerStatus0_HTTP_Handler(srv))
+	r.DELETE("/v1/timer/{id}", _Service_DeleteTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer/{id}/replay", _Service_ReplayTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer", _Service_ListTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer/{id}/callback", _Service_ListTimerCallback0_HTTP_Handler(srv))
@@ -405,24 +409,49 @@ func _Service_GetTimer0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Contex
 	}
 }
 
-func _Service_RevokeTimer0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+func _Service_UpdateTimerStatus0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in RevokeTimerRequest
+		var in UpdateTimerStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationServiceRevokeTimer)
+		http.SetOperation(ctx, OperationServiceUpdateTimerStatus)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RevokeTimer(ctx, req.(*RevokeTimerRequest))
+			return srv.UpdateTimerStatus(ctx, req.(*UpdateTimerStatusRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*RevokeTimerReply)
+		reply := out.(*UpdateTimerStatusReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Service_DeleteTimer0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteTimerRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceDeleteTimer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteTimer(ctx, req.(*DeleteTimerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteTimerReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -630,6 +659,7 @@ type ServiceHTTPClient interface {
 	AddTimer(ctx context.Context, req *AddTimerRequest, opts ...http.CallOption) (rsp *AddTimerReply, err error)
 	AddUser(ctx context.Context, req *AddUserRequest, opts ...http.CallOption) (rsp *AddUserReply, err error)
 	DeleteApplication(ctx context.Context, req *DeleteApplicationRequest, opts ...http.CallOption) (rsp *DeleteApplicationReply, err error)
+	DeleteTimer(ctx context.Context, req *DeleteTimerRequest, opts ...http.CallOption) (rsp *DeleteTimerReply, err error)
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserReply, err error)
 	GenApplicationSecret(ctx context.Context, req *GenApplicationSecretRequest, opts ...http.CallOption) (rsp *GenApplicationSecretReply, err error)
 	GetApplication(ctx context.Context, req *GetApplicationRequest, opts ...http.CallOption) (rsp *Application, err error)
@@ -643,10 +673,10 @@ type ServiceHTTPClient interface {
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 	ReplayTimer(ctx context.Context, req *ReplayTimerRequest, opts ...http.CallOption) (rsp *ReplayTimerReply, err error)
-	RevokeTimer(ctx context.Context, req *RevokeTimerRequest, opts ...http.CallOption) (rsp *RevokeTimerReply, err error)
 	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, opts ...http.CallOption) (rsp *UpdateApplicationReply, err error)
 	UpdateApplicationStatus(ctx context.Context, req *UpdateApplicationStatusRequest, opts ...http.CallOption) (rsp *UpdateApplicationStatusReply, err error)
 	UpdatePassword(ctx context.Context, req *UpdatePasswordRequest, opts ...http.CallOption) (rsp *UpdatePasswordReply, err error)
+	UpdateTimerStatus(ctx context.Context, req *UpdateTimerStatusRequest, opts ...http.CallOption) (rsp *UpdateTimerStatusReply, err error)
 	UpdateUserPassword(ctx context.Context, req *UpdateUserPasswordRequest, opts ...http.CallOption) (rsp *UpdateUserPasswordReply, err error)
 	UpdateUserStatus(ctx context.Context, req *UpdateUserStatusRequest, opts ...http.CallOption) (rsp *UpdateUserStatusReply, err error)
 }
@@ -703,6 +733,19 @@ func (c *ServiceHTTPClientImpl) DeleteApplication(ctx context.Context, in *Delet
 	pattern := "/v1/app/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationServiceDeleteApplication))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) DeleteTimer(ctx context.Context, in *DeleteTimerRequest, opts ...http.CallOption) (*DeleteTimerReply, error) {
+	var out DeleteTimerReply
+	pattern := "/v1/timer/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationServiceDeleteTimer))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -843,7 +886,7 @@ func (c *ServiceHTTPClientImpl) ListUser(ctx context.Context, in *ListUserReques
 
 func (c *ServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
 	var out LoginReply
-	pattern := "/v1/user/login"
+	pattern := "/v1/login"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationServiceLogin))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -856,7 +899,7 @@ func (c *ServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opt
 
 func (c *ServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...http.CallOption) (*LoginReply, error) {
 	var out LoginReply
-	pattern := "/v1/user/refresh"
+	pattern := "/v1/refresh"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationServiceRefreshToken))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -872,19 +915,6 @@ func (c *ServiceHTTPClientImpl) ReplayTimer(ctx context.Context, in *ReplayTimer
 	pattern := "/v1/timer/{id}/replay"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationServiceReplayTimer))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *ServiceHTTPClientImpl) RevokeTimer(ctx context.Context, in *RevokeTimerRequest, opts ...http.CallOption) (*RevokeTimerReply, error) {
-	var out RevokeTimerReply
-	pattern := "/v1/timer/{id}/invoke"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationServiceRevokeTimer))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -921,9 +951,22 @@ func (c *ServiceHTTPClientImpl) UpdateApplicationStatus(ctx context.Context, in 
 
 func (c *ServiceHTTPClientImpl) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...http.CallOption) (*UpdatePasswordReply, error) {
 	var out UpdatePasswordReply
-	pattern := "/v1/user/password"
+	pattern := "/v1/password"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationServiceUpdatePassword))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) UpdateTimerStatus(ctx context.Context, in *UpdateTimerStatusRequest, opts ...http.CallOption) (*UpdateTimerStatusReply, error) {
+	var out UpdateTimerStatusReply
+	pattern := "/v1/timer/{id}/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationServiceUpdateTimerStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

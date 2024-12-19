@@ -129,7 +129,7 @@ var (
 		v1.OperationServiceDeleteApplication:       {},
 		v1.OperationServiceAddTimer:                {},
 		v1.OperationServiceReplayTimer:             {},
-		v1.OperationServiceRevokeTimer:             {},
+		v1.OperationServiceDeleteTimer:             {},
 	}
 	readOption = map[string]struct{}{
 		v1.OperationServiceGetApplication:    {},

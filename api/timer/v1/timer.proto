@@ -12,14 +12,16 @@ enum CallbackType {
   KAFKA = 2; // 消息队列
 }
 enum TimerStatus {
-  PROCESSING = 0; // 未到时间
-  SUCCESS = 1; // 回调成功
-  FAILED = 2; // 回调失败
-  REVOKED = 3; // 已撤销
+  DISABLE = 0; // 未激活
+  ENABLE = 1; // 激活
 }
 enum ParamsIn {
   HEADER = 0; // 请求头
   QUERY = 2; // query
+}
+enum TimerType {
+  ONCE = 0; // 一次性定时器
+  CRONJOB = 1; // cronjob类型
 }
 message Params {
   string key = 1;
@@ -27,12 +29,16 @@ message Params {
   ParamsIn in = 3;
 }
 message AddTimerRequest {
-  CallbackType callback_type = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
-  int64 expire_at = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
-  string attach = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
-  string callback_address = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调地址:如果是http的方式这里填写URL，注意回调方式为 GET callback_url?attach=attach；如果是kafka填写topic名称"}];
-  string app_id = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
-  repeated Params params = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "额外自定义参数"}];
+  string app_id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
+  string name = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器名称"}];
+  TimerType type = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器类型"}];
+  CallbackType callback_type = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
+  string callback_address = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调地址:如果是http的方式这里填写URL，注意回调方式为 GET callback_url?attach=attach；如果是kafka填写topic名称"}];
+  string cron_expr = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "cronjob类型必填"}];
+  int64 expire_at = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "一次性定时器必传,定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
+  string attach = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
+  repeated Params params = 9[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "额外自定义参数"}];
+  TimerStatus status = 10[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器状态"}];
 }
 message AddTimerReply {
   string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
@@ -43,20 +49,34 @@ message GetTimerRequest {
 }
 message Timer {
   string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
-  CallbackType callback_type = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
-  int64 expire_at = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
-  string attach = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
-  string callback_address = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "http回调地址，注意回调方式为 GET callback_url?attach=attach"}];
-  int64 ttl = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "剩余时间，如果已经过期则为-1"}];
-  int64 retry = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调重试次数"}];
-  repeated string callback_failed_reasons = 9[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调失败原因"}];
-  repeated Params params = 10[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "额外自定义参数"}];
+  string app_id = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
+  string name = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器名称"}];
+  TimerType type = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器类型"}];
+  CallbackType callback_type = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调类型（mq类型只支持kafka）"}];
+  string callback_address = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "http回调地址，注意回调方式为 GET callback_url?attach=attach"}];
+  string cron_expr = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "cronjob类型必填"}];
+  int64 expire_at = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器时间戳（单位秒）；比如：1718854671 表示 2024-6-20 11:37:51"}];
+  string attach = 9[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "附件"}];
+  int64 ttl = 10[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "剩余时间，如果已经过期则为-1"}];
+  int64 fail = 11[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调失败次数"}];
+  int64 success = 12[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调成功次数"}];
+  repeated string callback_failed_reasons = 13[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调失败原因"}];
+  repeated Params params = 14[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "额外自定义参数"}];
+  TimerStatus status = 15[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器状态"}];
 }
 
-message RevokeTimerRequest {
+message UpdateTimerStatusRequest {
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
+  TimerStatus status = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器状态"}];
+}
+message UpdateTimerStatusReply {
+  TimerStatus status = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器状态"}];
+}
+
+message DeleteTimerRequest {
   string id = 1;
 }
-message RevokeTimerReply {}
+message DeleteTimerReply {}
 
 message ReplayTimerRequest {
   string id = 1;

@@ -14,7 +14,7 @@ import (
 	"github.com/gorhill/cronexpr"
 )
 
-var topicReg = regexp.MustCompile(`^(?!-|\.) (?!.*--)(?!.*\.\.)(?!.*-$)(?!.*\.$)[\w.-]{1,249}$`)
+var topicReg = regexp.MustCompile(`^([a-zA-Z0-9]+[-_\.])*[a-zA-Z0-9]+$`)
 
 func (s *Service) AddTimer(ctx context.Context, in *v1.AddTimerRequest) (*v1.AddTimerReply, error) {
 	var (

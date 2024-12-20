@@ -14,9 +14,7 @@ import (
 	"github.com/airunny/timer/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
-)
 
-import (
 	_ "go.uber.org/automaxprocs"
 )
 
@@ -36,7 +34,7 @@ func wireApp(serverConfig *common.ServerConfig, dataConfig *common.DataConfig, b
 	user := dao.NewUser(db, client)
 	application := dao.NewApplication(db)
 	timerRecord := dao.NewTimer(db)
-	timerCallback := dao.NewTimerCallback(db)
+	timerCallback := dao.NewTask(db)
 	token := dao.NewToken(db)
 	serviceService, cleanup3 := service.NewService(business, user, application, timerRecord, timerCallback, token)
 	grpcServer := server.NewGRPCServer(serverConfig, serviceService, logger)

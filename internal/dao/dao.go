@@ -12,5 +12,5 @@ var ProviderSet = wire.NewSet(
 	NewUser,
 	NewApplication,
 	NewTimer,
-	NewTimerCallback,
+	NewTask,
 )

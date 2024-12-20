@@ -23,9 +23,9 @@ enum TimerType {
   CRONJOB = 1; // cronjob类型
 }
 message Params {
-  string key = 1;
-  string value = 2;
-  ParamsIn in = 3;
+  string key = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "字段名"}];
+  string value = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "字段值"}];
+  ParamsIn in = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "字段所在位置：0:header；1:query"}];
 }
 message AddTimerRequest {
   string app_id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "应用ID"}];
@@ -44,7 +44,7 @@ message AddTimerReply {
 }
 
 message GetTimerRequest {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
 }
 message Timer {
   string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
@@ -73,45 +73,20 @@ message UpdateTimerStatusReply {
 }
 
 message DeleteTimerRequest {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
 }
 message DeleteTimerReply {}
 
 message ReplayTimerRequest {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
 }
 message ReplayTimerReply {}
 
 message ListTimerRequest {
-  int64 size = 1;
-  string offset = 2;
+  int64 size = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "每页数据大小，默认10",default:"10"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据页偏移，默认传空字符串",default:""}];
 }
 message ListTimerReply {
-  repeated Timer items = 1;
-  string offset = 2;
-}
-
-enum TimerCallbackStatus {
-  Success = 0; // 成功
-  Failed = 1; // 失败
-}
-
-message TimerCallback {
-  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "id"}];
-  string request_content = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调内容"}];
-  string reply_content = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回复内容"}];
-  string failed_reason = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "失败原因"}];
-  int64 retry_count = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "失败重试次数"}];
-  TimerCallbackStatus status = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调状态：0：成功；1：失败"}];
-  int64 created_at = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调时间，单位秒"}];
-}
-
-message ListTimerCallbackRequest {
-  string id = 1;
-  int64 size = 2;
-  string offset = 3;
-}
-message ListTimerCallbackReply {
-  repeated TimerCallback items = 1;
-  string offset = 2;
+  repeated Timer items = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据列表"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "下一页数据偏移"}];
 }

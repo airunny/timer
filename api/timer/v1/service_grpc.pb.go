@@ -37,7 +37,8 @@ const (
 	Service_DeleteTimer_FullMethodName             = "/api.timer.v1.Service/DeleteTimer"
 	Service_ReplayTimer_FullMethodName             = "/api.timer.v1.Service/ReplayTimer"
 	Service_ListTimer_FullMethodName               = "/api.timer.v1.Service/ListTimer"
-	Service_ListTimerCallback_FullMethodName       = "/api.timer.v1.Service/ListTimerCallback"
+	Service_ListTimerTask_FullMethodName           = "/api.timer.v1.Service/ListTimerTask"
+	Service_ListTask_FullMethodName                = "/api.timer.v1.Service/ListTask"
 	Service_AddUser_FullMethodName                 = "/api.timer.v1.Service/AddUser"
 	Service_GetUser_FullMethodName                 = "/api.timer.v1.Service/GetUser"
 	Service_UpdateUserStatus_FullMethodName        = "/api.timer.v1.Service/UpdateUserStatus"
@@ -57,6 +58,7 @@ type ServiceClient interface {
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginReply, error)
 	// 更新密码，用户自己
 	UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...grpc.CallOption) (*UpdatePasswordReply, error)
+	// ---------------------------- 应用 ----------------------------
 	// 应用[添加]
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	// 应用[删除]
@@ -71,6 +73,7 @@ type ServiceClient interface {
 	GenApplicationSecret(ctx context.Context, in *GenApplicationSecretRequest, opts ...grpc.CallOption) (*GenApplicationSecretReply, error)
 	// 应用[列表]
 	ListApplication(ctx context.Context, in *ListApplicationRequest, opts ...grpc.CallOption) (*ListApplicationReply, error)
+	// ---------------------------- 定时器----------------------------
 	// 定时器[添加]
 	AddTimer(ctx context.Context, in *AddTimerRequest, opts ...grpc.CallOption) (*AddTimerReply, error)
 	// 定时器[详情]
@@ -83,8 +86,12 @@ type ServiceClient interface {
 	ReplayTimer(ctx context.Context, in *ReplayTimerRequest, opts ...grpc.CallOption) (*ReplayTimerReply, error)
 	// 定时器[列表]
 	ListTimer(ctx context.Context, in *ListTimerRequest, opts ...grpc.CallOption) (*ListTimerReply, error)
-	// 定时器[回调列表]
-	ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...grpc.CallOption) (*ListTimerCallbackReply, error)
+	// ---------------------------- 任务 ----------------------------
+	// 任务[指定定时器任务]
+	ListTimerTask(ctx context.Context, in *ListTimerTaskRequest, opts ...grpc.CallOption) (*ListTimerTaskReply, error)
+	// 任务[列表]
+	ListTask(ctx context.Context, in *ListTaskRequest, opts ...grpc.CallOption) (*ListTaskReply, error)
+	// ---------------------------- 用户 ----------------------------
 	// 用户[添加]
 	AddUser(ctx context.Context, in *AddUserRequest, opts ...grpc.CallOption) (*AddUserReply, error)
 	// 用户[详情]
@@ -260,9 +267,18 @@ func (c *serviceClient) ListTimer(ctx context.Context, in *ListTimerRequest, opt
 	return out, nil
 }
 
-func (c *serviceClient) ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...grpc.CallOption) (*ListTimerCallbackReply, error) {
-	out := new(ListTimerCallbackReply)
-	err := c.cc.Invoke(ctx, Service_ListTimerCallback_FullMethodName, in, out, opts...)
+func (c *serviceClient) ListTimerTask(ctx context.Context, in *ListTimerTaskRequest, opts ...grpc.CallOption) (*ListTimerTaskReply, error) {
+	out := new(ListTimerTaskReply)
+	err := c.cc.Invoke(ctx, Service_ListTimerTask_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) ListTask(ctx context.Context, in *ListTaskRequest, opts ...grpc.CallOption) (*ListTaskReply, error) {
+	out := new(ListTaskReply)
+	err := c.cc.Invoke(ctx, Service_ListTask_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -334,6 +350,7 @@ type ServiceServer interface {
 	RefreshToken(context.Context, *RefreshTokenRequest) (*LoginReply, error)
 	// 更新密码，用户自己
 	UpdatePassword(context.Context, *UpdatePasswordRequest) (*UpdatePasswordReply, error)
+	// ---------------------------- 应用 ----------------------------
 	// 应用[添加]
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
 	// 应用[删除]
@@ -348,6 +365,7 @@ type ServiceServer interface {
 	GenApplicationSecret(context.Context, *GenApplicationSecretRequest) (*GenApplicationSecretReply, error)
 	// 应用[列表]
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
+	// ---------------------------- 定时器----------------------------
 	// 定时器[添加]
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
 	// 定时器[详情]
@@ -360,8 +378,12 @@ type ServiceServer interface {
 	ReplayTimer(context.Context, *ReplayTimerRequest) (*ReplayTimerReply, error)
 	// 定时器[列表]
 	ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error)
-	// 定时器[回调列表]
-	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
+	// ---------------------------- 任务 ----------------------------
+	// 任务[指定定时器任务]
+	ListTimerTask(context.Context, *ListTimerTaskRequest) (*ListTimerTaskReply, error)
+	// 任务[列表]
+	ListTask(context.Context, *ListTaskRequest) (*ListTaskReply, error)
+	// ---------------------------- 用户 ----------------------------
 	// 用户[添加]
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
 	// 用户[详情]
@@ -432,8 +454,11 @@ func (UnimplementedServiceServer) ReplayTimer(context.Context, *ReplayTimerReque
 func (UnimplementedServiceServer) ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTimer not implemented")
 }
-func (UnimplementedServiceServer) ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListTimerCallback not implemented")
+func (UnimplementedServiceServer) ListTimerTask(context.Context, *ListTimerTaskRequest) (*ListTimerTaskReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTimerTask not implemented")
+}
+func (UnimplementedServiceServer) ListTask(context.Context, *ListTaskRequest) (*ListTaskReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTask not implemented")
 }
 func (UnimplementedServiceServer) AddUser(context.Context, *AddUserRequest) (*AddUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
@@ -772,20 +797,38 @@ func _Service_ListTimer_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_ListTimerCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTimerCallbackRequest)
+func _Service_ListTimerTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTimerTaskRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).ListTimerCallback(ctx, in)
+		return srv.(ServiceServer).ListTimerTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_ListTimerCallback_FullMethodName,
+		FullMethod: Service_ListTimerTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).ListTimerCallback(ctx, req.(*ListTimerCallbackRequest))
+		return srv.(ServiceServer).ListTimerTask(ctx, req.(*ListTimerTaskRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_ListTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).ListTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_ListTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).ListTask(ctx, req.(*ListTaskRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -974,8 +1017,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_ListTimer_Handler,
 		},
 		{
-			MethodName: "ListTimerCallback",
-			Handler:    _Service_ListTimerCallback_Handler,
+			MethodName: "ListTimerTask",
+			Handler:    _Service_ListTimerTask_Handler,
+		},
+		{
+			MethodName: "ListTask",
+			Handler:    _Service_ListTask_Handler,
 		},
 		{
 			MethodName: "AddUser",

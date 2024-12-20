@@ -8,6 +8,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "timer/v1/application.proto";
 import "timer/v1/timer.proto";
 import "timer/v1/user.proto";
+import "timer/v1/task.proto";
 
 option go_package = "api/timer/v1;v1";
 
@@ -99,6 +100,7 @@ service Service {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "用户密码",tags:["用户"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
   }
 
+  // ---------------------------- 应用 ----------------------------
   // 应用[添加]
   rpc AddApplication(AddApplicationRequest) returns (Application) {
     option (google.api.http) = {post: "/v1/app" body:"*"};
@@ -135,6 +137,7 @@ service Service {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取应用列表",tags:["应用"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
   }
 
+  // ---------------------------- 定时器----------------------------
   // 定时器[添加]
   rpc AddTimer(AddTimerRequest) returns (AddTimerReply){
     option (google.api.http) = {post: "/v1/timer" body:"*"};
@@ -165,12 +168,20 @@ service Service {
     option (google.api.http) = {get: "/v1/timer"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "定时器列表",tags:["定时器"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
   }
-  // 定时器[回调列表]
-  rpc ListTimerCallback(ListTimerCallbackRequest) returns (ListTimerCallbackReply) {
-    option (google.api.http) = {get: "/v1/timer/{id}/callback"};
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "定时器列表回调记录",tags:["定时器"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
+
+  // ---------------------------- 任务 ----------------------------
+  // 任务[指定定时器任务]
+  rpc ListTimerTask(ListTimerTaskRequest) returns (ListTimerTaskReply) {
+    option (google.api.http) = {get: "/v1/timer/{id}/task"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "定时器任务列表",tags:["任务"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
+  }
+  // 任务[列表]
+  rpc ListTask(ListTaskRequest) returns (ListTaskReply) {
+    option (google.api.http) = {get: "/v1/task"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "任务列表",tags:["任务"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
   }
 
+  // ---------------------------- 用户 ----------------------------
   // 用户[添加]
   rpc AddUser(AddUserRequest) returns (AddUserReply) {
     option (google.api.http) = {post: "/v1/user" body:"*"};

@@ -32,8 +32,9 @@ const OperationServiceGetTimer = "/api.timer.v1.Service/GetTimer"
 const OperationServiceGetUser = "/api.timer.v1.Service/GetUser"
 const OperationServiceHealthy = "/api.timer.v1.Service/Healthy"
 const OperationServiceListApplication = "/api.timer.v1.Service/ListApplication"
+const OperationServiceListTask = "/api.timer.v1.Service/ListTask"
 const OperationServiceListTimer = "/api.timer.v1.Service/ListTimer"
-const OperationServiceListTimerCallback = "/api.timer.v1.Service/ListTimerCallback"
+const OperationServiceListTimerTask = "/api.timer.v1.Service/ListTimerTask"
 const OperationServiceListUser = "/api.timer.v1.Service/ListUser"
 const OperationServiceLogin = "/api.timer.v1.Service/Login"
 const OperationServiceRefreshToken = "/api.timer.v1.Service/RefreshToken"
@@ -46,11 +47,14 @@ const OperationServiceUpdateUserPassword = "/api.timer.v1.Service/UpdateUserPass
 const OperationServiceUpdateUserStatus = "/api.timer.v1.Service/UpdateUserStatus"
 
 type ServiceHTTPServer interface {
-	// AddApplication 应用[添加]
+	// AddApplication ---------------------------- 应用 ----------------------------
+	// 应用[添加]
 	AddApplication(context.Context, *AddApplicationRequest) (*Application, error)
-	// AddTimer 定时器[添加]
+	// AddTimer ---------------------------- 定时器----------------------------
+	// 定时器[添加]
 	AddTimer(context.Context, *AddTimerRequest) (*AddTimerReply, error)
-	// AddUser 用户[添加]
+	// AddUser ---------------------------- 用户 ----------------------------
+	// 用户[添加]
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
 	// DeleteApplication 应用[删除]
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
@@ -69,10 +73,13 @@ type ServiceHTTPServer interface {
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
 	// ListApplication 应用[列表]
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
+	// ListTask 任务[列表]
+	ListTask(context.Context, *ListTaskRequest) (*ListTaskReply, error)
 	// ListTimer 定时器[列表]
 	ListTimer(context.Context, *ListTimerRequest) (*ListTimerReply, error)
-	// ListTimerCallback 定时器[回调列表]
-	ListTimerCallback(context.Context, *ListTimerCallbackRequest) (*ListTimerCallbackReply, error)
+	// ListTimerTask ---------------------------- 任务 ----------------------------
+	// 任务[指定定时器任务]
+	ListTimerTask(context.Context, *ListTimerTaskRequest) (*ListTimerTaskReply, error)
 	// ListUser 用户[列表]
 	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
 	// Login 登录
@@ -114,7 +121,8 @@ func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r.DELETE("/v1/timer/{id}", _Service_DeleteTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer/{id}/replay", _Service_ReplayTimer0_HTTP_Handler(srv))
 	r.GET("/v1/timer", _Service_ListTimer0_HTTP_Handler(srv))
-	r.GET("/v1/timer/{id}/callback", _Service_ListTimerCallback0_HTTP_Handler(srv))
+	r.GET("/v1/timer/{id}/task", _Service_ListTimerTask0_HTTP_Handler(srv))
+	r.GET("/v1/task", _Service_ListTask0_HTTP_Handler(srv))
 	r.POST("/v1/user", _Service_AddUser0_HTTP_Handler(srv))
 	r.GET("/v1/user/{id}", _Service_GetUser0_HTTP_Handler(srv))
 	r.PUT("/v1/user/{id}/status", _Service_UpdateUserStatus0_HTTP_Handler(srv))
@@ -497,24 +505,43 @@ func _Service_ListTimer0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Conte
 	}
 }
 
-func _Service_ListTimerCallback0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+func _Service_ListTimerTask0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListTimerCallbackRequest
+		var in ListTimerTaskRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationServiceListTimerCallback)
+		http.SetOperation(ctx, OperationServiceListTimerTask)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListTimerCallback(ctx, req.(*ListTimerCallbackRequest))
+			return srv.ListTimerTask(ctx, req.(*ListTimerTaskRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListTimerCallbackReply)
+		reply := out.(*ListTimerTaskReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Service_ListTask0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListTaskRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceListTask)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListTask(ctx, req.(*ListTaskRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListTaskReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -667,8 +694,9 @@ type ServiceHTTPClient interface {
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *User, err error)
 	Healthy(ctx context.Context, req *common.EmptyRequest, opts ...http.CallOption) (rsp *common.HealthyReply, err error)
 	ListApplication(ctx context.Context, req *ListApplicationRequest, opts ...http.CallOption) (rsp *ListApplicationReply, err error)
+	ListTask(ctx context.Context, req *ListTaskRequest, opts ...http.CallOption) (rsp *ListTaskReply, err error)
 	ListTimer(ctx context.Context, req *ListTimerRequest, opts ...http.CallOption) (rsp *ListTimerReply, err error)
-	ListTimerCallback(ctx context.Context, req *ListTimerCallbackRequest, opts ...http.CallOption) (rsp *ListTimerCallbackReply, err error)
+	ListTimerTask(ctx context.Context, req *ListTimerTaskRequest, opts ...http.CallOption) (rsp *ListTimerTaskReply, err error)
 	ListUser(ctx context.Context, req *ListUserRequest, opts ...http.CallOption) (rsp *ListUserReply, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
@@ -845,6 +873,19 @@ func (c *ServiceHTTPClientImpl) ListApplication(ctx context.Context, in *ListApp
 	return &out, err
 }
 
+func (c *ServiceHTTPClientImpl) ListTask(ctx context.Context, in *ListTaskRequest, opts ...http.CallOption) (*ListTaskReply, error) {
+	var out ListTaskReply
+	pattern := "/v1/task"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationServiceListTask))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *ServiceHTTPClientImpl) ListTimer(ctx context.Context, in *ListTimerRequest, opts ...http.CallOption) (*ListTimerReply, error) {
 	var out ListTimerReply
 	pattern := "/v1/timer"
@@ -858,11 +899,11 @@ func (c *ServiceHTTPClientImpl) ListTimer(ctx context.Context, in *ListTimerRequ
 	return &out, err
 }
 
-func (c *ServiceHTTPClientImpl) ListTimerCallback(ctx context.Context, in *ListTimerCallbackRequest, opts ...http.CallOption) (*ListTimerCallbackReply, error) {
-	var out ListTimerCallbackReply
-	pattern := "/v1/timer/{id}/callback"
+func (c *ServiceHTTPClientImpl) ListTimerTask(ctx context.Context, in *ListTimerTaskRequest, opts ...http.CallOption) (*ListTimerTaskReply, error) {
+	var out ListTimerTaskReply
+	pattern := "/v1/timer/{id}/task"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationServiceListTimerCallback))
+	opts = append(opts, http.Operation(OperationServiceListTimerTask))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package api.timer.v1;
+
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "api/timer/v1;v1";
+
+enum TaskStatus {
+  Success = 0; // 成功
+  Failed = 1; // 失败
+}
+
+message Task {
+  int64 id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "id"}];
+  string timer_id = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
+  int64 run_time = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "运行时间"}];
+  string request = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调内容"}];
+  string response = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回复内容"}];
+  TaskStatus status = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "回调状态：0：成功；1：失败"}];
+  int64 retry = 7[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "失败重试次数"}];
+  string failed_reason = 8[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "失败原因"}];
+  int64 created_at = 9[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "插入事件，单位秒"}];
+  int64 updated_at = 10[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "最后一次更新时间，单位秒"}];
+}
+
+message ListTimerTaskRequest {
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "定时器ID"}];
+  int64 size = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "每页数据大小，默认10",default:"10"}];
+  string offset = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据页偏移，默认传空字符串",default:""}];
+  TaskStatus status = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "状态过滤；-1：不做状态筛选；0：成功；1：失败",default:"-1"}];
+}
+message ListTimerTaskReply {
+  repeated Task items = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据列表"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "下一页的数据偏移"}];
+}
+
+message ListTaskRequest {
+  int64 start = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "开始时间，单位秒"}];
+  int64 end = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "结束时间，单位秒"}];
+  int64 size = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "每页数据大小，默认10",default:"10"}];
+  string offset = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据页偏移，默认传空字符串",default:""}];
+  TaskStatus status = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "状态过滤；-1：不做状态筛选；0：成功；1：失败",default:"-1"}];
+}
+message ListTaskReply {
+  repeated Task items = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据列表"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "下一页的数据偏移"}];
+}

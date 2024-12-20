@@ -26,14 +26,14 @@ const (
 
 type Service struct {
 	v1.UnimplementedServiceServer
-	business      *conf.Business
-	user          *dao.User
-	application   *dao.Application
-	timer         *dao.TimerRecord
-	timerCallback *dao.TimerCallback
-	token         *dao.Token
-	producer      *ikafka.Producer
-	JWT           *jwt.JWT
+	business    *conf.Business
+	user        *dao.User
+	application *dao.Application
+	timer       *dao.TimerRecord
+	task        *dao.Task
+	token       *dao.Token
+	producer    *ikafka.Producer
+	JWT         *jwt.JWT
 }
 
 func NewService(
@@ -41,7 +41,7 @@ func NewService(
 	user *dao.User,
 	application *dao.Application,
 	timer *dao.TimerRecord,
-	timerCallback *dao.TimerCallback,
+	task *dao.Task,
 	token *dao.Token,
 ) (*Service, func()) {
 	var (
@@ -86,7 +86,7 @@ func NewService(
 		user:                       user,
 		application:                application,
 		timer:                      timer,
-		timerCallback:              timerCallback,
+		task:                       task,
 		token:                      token,
 		producer:                   producer,
 		JWT:                        jwtCli,

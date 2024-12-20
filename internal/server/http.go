@@ -132,11 +132,11 @@ var (
 		v1.OperationServiceDeleteTimer:             {},
 	}
 	readOption = map[string]struct{}{
-		v1.OperationServiceGetApplication:    {},
-		v1.OperationServiceGetTimer:          {},
-		v1.OperationServiceListApplication:   {},
-		v1.OperationServiceListTimer:         {},
-		v1.OperationServiceListTimerCallback: {},
+		v1.OperationServiceGetApplication:  {},
+		v1.OperationServiceGetTimer:        {},
+		v1.OperationServiceListApplication: {},
+		v1.OperationServiceListTimer:       {},
+		v1.OperationServiceListTask:        {},
 	}
 )
 

@@ -148,33 +148,6 @@ func (s *Service) ListTimer(ctx context.Context, in *v1.ListTimerRequest) (*v1.L
 	}, nil
 }
 
-func (s *Service) ListTimerCallback(ctx context.Context, in *v1.ListTimerCallbackRequest) (*v1.ListTimerCallbackReply, error) {
-	l := log.Context(ctx)
-	values, offset, err := s.timerCallback.FindByTimerId(ctx, in.Id, in.Offset, int(in.Size))
-	if err != nil {
-		l.Errorf("imerCallback.FindByTimerId Err:%v", err)
-		return nil, err
-	}
-
-	items := make([]*v1.TimerCallback, 0, len(values))
-	for _, value := range values {
-		items = append(items, &v1.TimerCallback{
-			Id:             value.ID,
-			RequestContent: value.RequestContent,
-			ReplyContent:   value.ReplyContent,
-			FailedReason:   value.FailedReason,
-			RetryCount:     value.RetryCount,
-			Status:         value.Status,
-			CreatedAt:      value.CreatedAt.Unix(),
-		})
-	}
-
-	return &v1.ListTimerCallbackReply{
-		Items:  items,
-		Offset: offset,
-	}, nil
-}
-
 func (s *Service) timerToGRPC(in *models.Timer) *v1.Timer {
 	ttl := in.ExpireAt - time.Now().Unix()
 	if ttl < 0 {

@@ -23,8 +23,8 @@ message RefreshTokenRequest {
 }
 
 message UpdatePasswordRequest {
-  string old_password = 2;
-  string new_password = 3;
+  string old_password = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "老密码"}];
+  string new_password = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "新密码"}];
 }
 message UpdatePasswordReply {}
 
@@ -46,47 +46,47 @@ message AddUserRequest {
   UserRole role = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户角色：0:管理员；1：读写；2：只读"}];
 }
 message AddUserReply {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
 }
 
 message User {
-  string  id = 1;
-  string name = 2;
-  UserRole role = 3;
-  UserStatus status = 4;
-  int64 created_at = 5;
-  int64 updated_at = 6;
+  string  id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
+  string name = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户名称"}];
+  UserRole role = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户角色：0：超管；1：拥有读写权限；2：拥有只读权限"}];
+  UserStatus status = 4[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户状态:0:禁用；1：启用"}];
+  int64 created_at = 5[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "创建时间，单位秒"}];
+  int64 updated_at = 6[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "最后一次更新时间，单位秒"}];
 }
 
 message GetUserRequest {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
 }
 
 message UpdateUserStatusRequest {
-  string id = 1;
-  UserStatus status = 2;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
+  UserStatus status = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户状态:0:禁用；1：启用"}];
 }
 message UpdateUserStatusReply {
-  UserStatus status = 1;
+  UserStatus status = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户状态:0:禁用；1：启用"}];
 }
 
 message ListUserRequest {
-  int64 size = 1;
-  string offset = 2;
+  int64 size = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "每页数据大小，默认10",default:"10"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据页偏移，默认传空字符串",default:""}];
 }
 message ListUserReply {
-  repeated User items = 1;
-  string offset = 2;
+  repeated User items = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "数据列表"}];
+  string offset = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "下一页数据偏移"}];
 }
 
 message UpdateUserPasswordRequest {
-  string id = 1;
-  string old_password = 2;
-  string new_password = 3;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
+  string old_password = 2[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "旧密码"}];
+  string new_password = 3[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "新密码"}];
 }
 message UpdateUserPasswordReply {}
 
 message DeleteUserRequest {
-  string id = 1;
+  string id = 1[(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {title: "用户ID"}];
 }
 message DeleteUserReply {}

@@ -36,7 +36,7 @@ func NewMySQL(c *common.DataConfig, logger log.Logger) (*gorm.DB, func(), error)
 	err = db.AutoMigrate(
 		&models.Application{},
 		&models.Timer{},
-		&models.TimerCallback{},
+		&models.Task{},
 		&models.User{},
 		&models.Token{},
 	)

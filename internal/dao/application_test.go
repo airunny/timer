@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/airunny/timer/api/common"
+	v1 "github.com/airunny/timer/api/timer/v1"
 	"github.com/airunny/timer/internal/models"
 	"github.com/airunny/wiki-go-tools/objectid"
 	"github.com/airunny/wiki-go-tools/ormhelper"
@@ -21,17 +22,18 @@ func TestNewApplication(t *testing.T) {
 	assert.Nil(t, err)
 	defer closer()
 
-	application := NewApplication(db)
-
 	var (
-		id      = objectid.ObjectID()
-		newData = &models.Application{
-			ID:          id,
-			Name:        "timer",
-			Description: "Distributed timer service",
+		application = NewApplication(db)
+		id          = objectid.ObjectID()
+		newData     = &models.Application{
+			ID:            id,
+			Name:          "timer",
+			Description:   "Distributed timer service",
+			Secret:        "secret",
+			Authorization: true,
+			Status:        v1.ApplicationStatus_ON,
 		}
 	)
-
 	// add
 	err = application.Add(context.Background(), newData)
 	assert.Nil(t, err)
@@ -42,12 +44,17 @@ func TestNewApplication(t *testing.T) {
 	assert.NotNil(t, data)
 	assert.Equal(t, newData.Name, data.Name)
 	assert.Equal(t, newData.Description, data.Description)
+	assert.Equal(t, newData.Secret, data.Secret)
+	assert.Equal(t, newData.Authorization, data.Authorization)
+	assert.Equal(t, newData.Status, data.Status)
 
 	// update
 	updateData := &models.Application{
-		ID:          id,
-		Name:        "new timer",
-		Description: "new Distributed timer service",
+		ID:            id,
+		Name:          "new timer",
+		Description:   "new Distributed timer service",
+		Authorization: false,
+		Status:        v1.ApplicationStatus_OFF,
 	}
 	err = application.Update(context.Background(), updateData)
 	assert.Nil(t, err)
@@ -58,6 +65,27 @@ func TestNewApplication(t *testing.T) {
 	assert.NotNil(t, data)
 	assert.Equal(t, updateData.Name, data.Name)
 	assert.Equal(t, updateData.Description, data.Description)
+	assert.Equal(t, newData.Secret, data.Secret)
+	assert.Equal(t, updateData.Authorization, data.Authorization)
+	assert.Equal(t, updateData.Status, data.Status)
+
+	// update status
+	err = application.UpdateStatus(context.Background(), id, v1.ApplicationStatus_ON)
+	assert.Nil(t, err)
+
+	// get
+	data, err = application.Get(context.Background(), id)
+	assert.Nil(t, err)
+	assert.Equal(t, v1.ApplicationStatus_ON, data.Status)
+
+	// update secret
+	err = application.UpdateSecret(context.Background(), id, "timer_secret")
+	assert.Nil(t, err)
+
+	// get
+	data, err = application.Get(context.Background(), id)
+	assert.Nil(t, err)
+	assert.Equal(t, "timer_secret", data.Secret)
 
 	// find
 	datas, _, err := application.Find(context.Background(), 10, "")

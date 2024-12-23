@@ -39,6 +39,7 @@ func NewMySQL(c *common.DataConfig, logger log.Logger) (*gorm.DB, func(), error)
 		&models.Task{},
 		&models.User{},
 		&models.Token{},
+		&models.Global{},
 	)
 	if err != nil {
 		return nil, nil, err

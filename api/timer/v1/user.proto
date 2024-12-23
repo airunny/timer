@@ -29,14 +29,16 @@ message UpdatePasswordRequest {
 message UpdatePasswordReply {}
 
 enum UserRole {
-  Admin = 0; // 管理员
-  ReadWrite = 1; // 读写
-  ReadOnly = 2; // 只读
+  UserRoleUnknown = 0; // 未知
+  Admin = 1; // 管理员
+  ReadWrite = 2; // 读写
+  ReadOnly = 3; // 只读
 }
 
 enum UserStatus {
-  UserStatusOff = 0; // 禁用
-  UserStatusOn = 1; // 启用
+  UserStatusUnknown = 0; // 未知
+  UserStatusOff = 1; // 禁用
+  UserStatusOn = 2; // 启用
 }
 
 message AddUserRequest {

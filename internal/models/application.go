@@ -13,7 +13,7 @@ type Application struct {
 	Description   string               `gorm:"column:description;type:varchar(256) not null;default:'';comment:描述"`
 	Secret        string               `gorm:"column:secret;type:varchar(256) not null;default:'';comment:秘钥"`
 	Authorization bool                 `gorm:"column:authorization;type:tinyint not null;default:1;comment:是否认证:0:不认证;1:认证"`
-	Status        v1.ApplicationStatus `gorm:"column:status;type:smallint not null;default:0;comment:应用状态:0:禁用;1:启用"`
+	Status        v1.ApplicationStatus `gorm:"column:status;type:smallint not null;default:0;comment:应用状态0:未知:1:禁用;2:启用"`
 	CreatedAt     time.Time            `gorm:"column:created_at;type:timestamp not null;default:current_timestamp();comment:创建时间"`
 	UpdatedAt     time.Time            `gorm:"column:updated_at;type:timestamp not null default current_timestamp() on update current_timestamp();comment:最后一次更新时间"`
 	DeletedAt     gorm.DeletedAt       `gorm:"column:deleted_at;index;comment:是否删除"`

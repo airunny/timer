@@ -23,12 +23,12 @@ func NewUser(mysql *gorm.DB, redisClient *redis.Client) *User {
 	}
 }
 
-func (s *User) Session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
+func (s *User) session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
 	return igorm.NewOptions(s.db, opts...).Session().WithContext(ctx)
 }
 
 func (s *User) Add(ctx context.Context, in *models.User, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).Create(in).Error
+	err := s.session(ctx, opts...).Create(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
 	}
@@ -37,7 +37,7 @@ func (s *User) Add(ctx context.Context, in *models.User, opts ...igorm.Option) e
 
 func (s *User) CountByName(ctx context.Context, name string, opts ...igorm.Option) (int64, error) {
 	var count int64
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.User{}).
 		Where("name = ?", name).
 		Count(&count).Error
@@ -49,7 +49,7 @@ func (s *User) CountByName(ctx context.Context, name string, opts ...igorm.Optio
 
 func (s *User) CountByNameWithInclude(ctx context.Context, name, excludeId string, opts ...igorm.Option) (int64, error) {
 	var count int64
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.User{}).
 		Where("name = ? and id != ?", name, excludeId).
 		Count(&count).Error
@@ -60,7 +60,7 @@ func (s *User) CountByNameWithInclude(ctx context.Context, name, excludeId strin
 }
 
 func (s *User) Delete(ctx context.Context, id string, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Where("id = ?", id).
 		Delete(&models.User{}).Error
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *User) Delete(ctx context.Context, id string, opts ...igorm.Option) erro
 }
 
 func (s *User) Update(ctx context.Context, in *models.User, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Updates(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
@@ -79,7 +79,7 @@ func (s *User) Update(ctx context.Context, in *models.User, opts ...igorm.Option
 }
 
 func (s *User) UpdateStatus(ctx context.Context, id string, status v1.UserStatus, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.User{}).
 		Where("id = ?", id).
 		Update("status", status).Error
@@ -90,7 +90,7 @@ func (s *User) UpdateStatus(ctx context.Context, id string, status v1.UserStatus
 }
 
 func (s *User) UpdatePassword(ctx context.Context, id, password string, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.User{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
@@ -105,7 +105,7 @@ func (s *User) UpdatePassword(ctx context.Context, id, password string, opts ...
 
 func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Where("id = ?", id).
 		First(&out).Error
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *User) Get(ctx context.Context, id string, opts ...igorm.Option) (*model
 
 func (s *User) GetByName(ctx context.Context, name string, opts ...igorm.Option) (*models.User, error) {
 	var out *models.User
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Where("name = ?", name).
 		First(&out).Error
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *User) GetByName(ctx context.Context, name string, opts ...igorm.Option)
 
 func (s *User) FindByPage(ctx context.Context, page, size int, opts ...igorm.Option) ([]*models.User, error) {
 	var out []*models.User
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Order("id desc").
 		Offset((page - 1) * size).
 		Limit(size).
@@ -141,7 +141,7 @@ func (s *User) FindByPage(ctx context.Context, page, size int, opts ...igorm.Opt
 func (s *User) FindByOffset(ctx context.Context, size int, offset string, opts ...igorm.Option) ([]*models.User, string, error) {
 	var (
 		out        []*models.User
-		session    = s.Session(ctx, opts...).Order("id desc")
+		session    = s.session(ctx, opts...).Order("id desc")
 		nextOffset = ""
 	)
 

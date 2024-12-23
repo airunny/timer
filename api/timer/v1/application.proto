@@ -7,8 +7,9 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 option go_package = "api/timer/v1;v1";
 
 enum ApplicationStatus {
-  OFF = 0; // 关闭
-  ON = 1; // 启用
+  ApplicationStatusUnknown = 0;
+  OFF = 1; // 关闭
+  ON = 2; // 启用
 }
 
 message Application {

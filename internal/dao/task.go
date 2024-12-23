@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	innErr "github.com/airunny/timer/errors"
-
 	v1 "github.com/airunny/timer/api/timer/v1"
+	innErr "github.com/airunny/timer/errors"
 	"github.com/airunny/timer/internal/models"
 	"github.com/airunny/wiki-go-tools/igorm"
 	"github.com/airunny/wiki-go-tools/ormhelper"
@@ -24,26 +23,30 @@ func NewTask(db *gorm.DB) *Task {
 	}
 }
 
-func (s *Task) Session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
+func (s *Task) session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
 	return igorm.NewOptions(s.db, opts...).Session().WithContext(ctx)
 }
 
-func (s *Task) Add(ctx context.Context, in *models.Task, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).Create(in).Error
+func (s *Task) Add(ctx context.Context, in *models.Task, opts ...igorm.Option) (int64, error) {
+	err := s.session(ctx, opts...).Debug().Create(in).Error
 	if err != nil {
-		return ormhelper.WrapErr(err)
+		return 0, ormhelper.WrapErr(err)
 	}
-	return nil
+	return in.ID, nil
 }
 
 func (s *Task) FindByTimerId(ctx context.Context, timerId, offset string, size int, status v1.TaskStatus, opts ...igorm.Option) ([]*models.Task, string, error) {
 	var (
 		out        []*models.Task
 		nextOffset string
-		session    = s.Session(ctx, opts...).
-				Where("timer_id = ? and status = ?", timerId, status).
+		session    = s.session(ctx, opts...).
+				Where("timer_id = ?", timerId).
 				Order("id desc")
 	)
+
+	if status > 0 {
+		session = session.Where("status = ?", status)
+	}
 
 	if offset != "" {
 		intOffset, err := strconv.ParseInt(offset, 10, 64)
@@ -73,10 +76,14 @@ func (s *Task) FindByTime(ctx context.Context, offset string, start, end time.Ti
 	var (
 		out        []*models.Task
 		nextOffset string
-		session    = s.Session(ctx, opts...).
-				Where("created_at >= ? and created_at <= ? and status = ?", start, end, status).
+		session    = s.session(ctx, opts...).
+				Where("created_at >= ? and created_at <= ?", start, end).
 				Order("id desc")
 	)
+
+	if status > 0 {
+		session = session.Where("status = ?", status)
+	}
 
 	if offset != "" {
 		intOffset, err := strconv.ParseInt(offset, 10, 64)
@@ -86,7 +93,7 @@ func (s *Task) FindByTime(ctx context.Context, offset string, start, end time.Ti
 		session = session.Where("id < ?", intOffset)
 	}
 
-	err := session.Limit(size + 1).Find(&out).Error
+	err := session.Limit(size + 1).Debug().Find(&out).Error
 	if err != nil {
 		return out, nextOffset, ormhelper.WrapErr(err)
 	}

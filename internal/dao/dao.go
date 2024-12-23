@@ -8,9 +8,11 @@ var ProviderSet = wire.NewSet(
 	NewMySQL,
 	NewRedis,
 	NewRedisCache,
+
+	NewGlobal,
+	NewApplication,
 	NewToken,
 	NewUser,
-	NewApplication,
 	NewTimer,
 	NewTask,
 )

@@ -7,8 +7,9 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 option go_package = "api/timer/v1;v1";
 
 enum TaskStatus {
-  Success = 0; // 成功
-  Failed = 1; // 失败
+  TaskStatusUnknown = 0;
+  Success = 1; // 成功
+  Failed = 2; // 失败
 }
 
 message Task {

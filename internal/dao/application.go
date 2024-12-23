@@ -20,12 +20,12 @@ func NewApplication(db *gorm.DB) *Application {
 	}
 }
 
-func (s *Application) Session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
+func (s *Application) session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
 	return igorm.NewOptions(s.db, opts...).Session().WithContext(ctx)
 }
 
 func (s *Application) Add(ctx context.Context, in *models.Application, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Create(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
@@ -35,7 +35,7 @@ func (s *Application) Add(ctx context.Context, in *models.Application, opts ...i
 
 func (s *Application) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.Application, error) {
 	var out models.Application
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Where("id = ?", id).
 		First(&out).Error
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *Application) Get(ctx context.Context, id string, opts ...igorm.Option) 
 
 func (s *Application) CountByName(ctx context.Context, name string, opts ...igorm.Option) (int64, error) {
 	var count int64
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.Application{}).
 		Where("name = ?", name).
 		Count(&count).Error
@@ -58,7 +58,7 @@ func (s *Application) CountByName(ctx context.Context, name string, opts ...igor
 
 func (s *Application) CountByNameWithInclude(ctx context.Context, name, excludeId string, opts ...igorm.Option) (int64, error) {
 	var count int64
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.Application{}).
 		Where("name = ? and id != ?", name, excludeId).
 		Count(&count).Error
@@ -69,7 +69,7 @@ func (s *Application) CountByNameWithInclude(ctx context.Context, name, excludeI
 }
 
 func (s *Application) Update(ctx context.Context, in *models.Application, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Select("name", "description", "authorization", "status").
 		Updates(in).Error
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *Application) Update(ctx context.Context, in *models.Application, opts .
 }
 
 func (s *Application) UpdateStatus(ctx context.Context, id string, status v1.ApplicationStatus, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.Application{}).
 		Where("id = ?", id).
 		Update("status", status).Error
@@ -90,7 +90,7 @@ func (s *Application) UpdateStatus(ctx context.Context, id string, status v1.App
 }
 
 func (s *Application) UpdateSecret(ctx context.Context, id, secret string, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.Application{}).
 		Where("id = ?", id).
 		Update("secret", secret).Error
@@ -101,7 +101,7 @@ func (s *Application) UpdateSecret(ctx context.Context, id, secret string, opts 
 }
 
 func (s *Application) Delete(ctx context.Context, id string, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Delete(&models.Application{
 			ID: id,
 		}).Error
@@ -114,7 +114,7 @@ func (s *Application) Delete(ctx context.Context, id string, opts ...igorm.Optio
 func (s *Application) Find(ctx context.Context, size int, offset string, opts ...igorm.Option) ([]*models.Application, string, error) {
 	var (
 		out        []*models.Application
-		session    = s.Session(ctx, opts...).Order("id desc")
+		session    = s.session(ctx, opts...).Order("id desc")
 		nextOffset = ""
 	)
 

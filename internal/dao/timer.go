@@ -20,12 +20,12 @@ func NewTimer(db *gorm.DB) *TimerRecord {
 	}
 }
 
-func (s *TimerRecord) Session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
+func (s *TimerRecord) session(ctx context.Context, opts ...igorm.Option) *gorm.DB {
 	return igorm.NewOptions(s.db, opts...).Session().WithContext(ctx)
 }
 
 func (s *TimerRecord) Add(ctx context.Context, in *models.Timer, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Create(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
@@ -35,7 +35,7 @@ func (s *TimerRecord) Add(ctx context.Context, in *models.Timer, opts ...igorm.O
 
 func (s *TimerRecord) Get(ctx context.Context, id string, opts ...igorm.Option) (*models.Timer, error) {
 	var out models.Timer
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Where("id = ?", id).
 		First(&out).Error
 	if err != nil {
@@ -45,7 +45,7 @@ func (s *TimerRecord) Get(ctx context.Context, id string, opts ...igorm.Option) 
 }
 
 func (s *TimerRecord) Update(ctx context.Context, in *models.Timer, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Updates(in).Error
 	if err != nil {
 		return ormhelper.WrapErr(err)
@@ -54,7 +54,7 @@ func (s *TimerRecord) Update(ctx context.Context, in *models.Timer, opts ...igor
 }
 
 func (s *TimerRecord) UpdateStatus(ctx context.Context, id string, status v1.TimerStatus, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Model(&models.Timer{}).
 		Where("id = ?", id).
 		Update("status", status).Error
@@ -65,7 +65,7 @@ func (s *TimerRecord) UpdateStatus(ctx context.Context, id string, status v1.Tim
 }
 
 func (s *TimerRecord) Delete(ctx context.Context, id string, opts ...igorm.Option) error {
-	err := s.Session(ctx, opts...).
+	err := s.session(ctx, opts...).
 		Delete(&models.Timer{
 			ID: id,
 		}).Error
@@ -78,7 +78,7 @@ func (s *TimerRecord) Delete(ctx context.Context, id string, opts ...igorm.Optio
 func (s *TimerRecord) Find(ctx context.Context, size int, offset string, opts ...igorm.Option) ([]*models.Timer, string, error) {
 	var (
 		out     []*models.Timer
-		session = s.Session(ctx, opts...).
+		session = s.session(ctx, opts...).
 			Order("id desc")
 		nextOffset = ""
 	)

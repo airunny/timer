@@ -42,7 +42,7 @@ func (s *Global) GetByName(ctx context.Context, namespace, name string, opts ...
 	return &out, nil
 }
 
-func (s *Global) UpdateByKey(ctx context.Context, in *models.Global, opts ...igorm.Option) error {
+func (s *Global) UpsertByKey(ctx context.Context, in *models.Global, opts ...igorm.Option) error {
 	err := s.session(ctx, opts...).
 		Model(&models.Global{}).
 		Where("namespace = ? and name = ?", in.Namespace, in.Name).

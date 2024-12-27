@@ -51,5 +51,8 @@ func (s *ConsumerWithRedis) Consumer(ctx context.Context, callback Callback, top
 }
 
 func (s *ConsumerWithRedis) Close() {
+	if s.sub == nil {
+		return
+	}
 	s.sub.Close()
 }

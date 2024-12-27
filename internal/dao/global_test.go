@@ -39,7 +39,7 @@ func TestNewGlobal(t *testing.T) {
 	assert.Equal(t, newData.Name, data.Name)
 	assert.Equal(t, newData.Value, data.Value)
 
-	err = cli.UpdateByKey(ctx, &models.Global{
+	err = cli.UpsertByKey(ctx, &models.Global{
 		Namespace: "timer",
 		Name:      "name",
 		Value:     "value1",

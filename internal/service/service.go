@@ -52,6 +52,7 @@ func NewService(
 	timer *dao.TimerRecord,
 	task *dao.Task,
 	token *dao.Token,
+	global *dao.Global,
 ) (*Service, func()) {
 	var (
 		producer *ikafka.Producer
@@ -108,6 +109,7 @@ func NewService(
 		locker:      l,
 		publisher:   queue.NewPublishWithRedis(redisClient),
 		consumer:    consumer,
+		global:      global,
 	}
 
 	return s, func() {

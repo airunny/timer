@@ -14,7 +14,9 @@ import (
 	"github.com/airunny/timer/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
+)
 
+import (
 	_ "go.uber.org/automaxprocs"
 )
 
@@ -22,11 +24,11 @@ import (
 
 // wireApp init kratos application.
 func wireApp(serverConfig *common.ServerConfig, dataConfig *common.DataConfig, business *conf.Business, logger log.Logger) (*kratos.App, func(), error) {
-	db, cleanup, err := dao.NewMySQL(dataConfig, logger)
+	client, cleanup, err := dao.NewRedis(dataConfig, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	client, cleanup2, err := dao.NewRedis(dataConfig, logger)
+	db, cleanup2, err := dao.NewMySQL(dataConfig, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -34,9 +36,9 @@ func wireApp(serverConfig *common.ServerConfig, dataConfig *common.DataConfig, b
 	user := dao.NewUser(db, client)
 	application := dao.NewApplication(db)
 	timerRecord := dao.NewTimer(db)
-	timerCallback := dao.NewTask(db)
+	task := dao.NewTask(db)
 	token := dao.NewToken(db)
-	serviceService, cleanup3 := service.NewService(business, user, application, timerRecord, timerCallback, token)
+	serviceService, cleanup3 := service.NewService(client, business, user, application, timerRecord, task, token)
 	grpcServer := server.NewGRPCServer(serverConfig, serviceService, logger)
 	httpServer := server.NewHTTPServer(serverConfig, serviceService, logger)
 	app := newApp(logger, grpcServer, httpServer)

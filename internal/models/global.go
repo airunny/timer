@@ -1,7 +1,13 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
+)
+
+const (
+	NamespaceMetadata string = "metadata" // 元数据
+	NamespaceBucket   string = "bucket"   // bucket信息
 )
 
 type Global struct {
@@ -15,4 +21,18 @@ type Global struct {
 
 func (Global) TableName() string {
 	return "global"
+}
+
+type MetadataBucket struct {
+	NumberOfBuckets int64    `json:"number_of_buckets"` // bucket的数量
+	Buckets         []string `json:"buckets"`           // bucket列表
+}
+
+func (m *MetadataBucket) String() string {
+	str, _ := json.Marshal(m)
+	return string(str)
+}
+
+func (m *MetadataBucket) FromString(in string) error {
+	return json.Unmarshal([]byte(in), m)
 }

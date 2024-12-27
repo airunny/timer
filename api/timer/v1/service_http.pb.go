@@ -23,6 +23,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationServiceAddApplication = "/api.timer.v1.Service/AddApplication"
 const OperationServiceAddTimer = "/api.timer.v1.Service/AddTimer"
 const OperationServiceAddUser = "/api.timer.v1.Service/AddUser"
+const OperationServiceBucket = "/api.timer.v1.Service/Bucket"
 const OperationServiceDeleteApplication = "/api.timer.v1.Service/DeleteApplication"
 const OperationServiceDeleteTimer = "/api.timer.v1.Service/DeleteTimer"
 const OperationServiceDeleteUser = "/api.timer.v1.Service/DeleteUser"
@@ -32,6 +33,7 @@ const OperationServiceGetTimer = "/api.timer.v1.Service/GetTimer"
 const OperationServiceGetUser = "/api.timer.v1.Service/GetUser"
 const OperationServiceHealthy = "/api.timer.v1.Service/Healthy"
 const OperationServiceListApplication = "/api.timer.v1.Service/ListApplication"
+const OperationServiceListBucket = "/api.timer.v1.Service/ListBucket"
 const OperationServiceListTask = "/api.timer.v1.Service/ListTask"
 const OperationServiceListTimer = "/api.timer.v1.Service/ListTimer"
 const OperationServiceListTimerTask = "/api.timer.v1.Service/ListTimerTask"
@@ -56,6 +58,9 @@ type ServiceHTTPServer interface {
 	// AddUser ---------------------------- 用户 ----------------------------
 	// 用户[添加]
 	AddUser(context.Context, *AddUserRequest) (*AddUserReply, error)
+	// Bucket ---------------------------- 全局配置 ----------------------------
+	// 分桶[创建]
+	Bucket(context.Context, *BucketRequest) (*BucketReply, error)
 	// DeleteApplication 应用[删除]
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationReply, error)
 	// DeleteTimer 定时器[移除]
@@ -73,6 +78,8 @@ type ServiceHTTPServer interface {
 	Healthy(context.Context, *common.EmptyRequest) (*common.HealthyReply, error)
 	// ListApplication 应用[列表]
 	ListApplication(context.Context, *ListApplicationRequest) (*ListApplicationReply, error)
+	// ListBucket 查看分桶信息
+	ListBucket(context.Context, *ListBucketRequest) (*ListBucketReply, error)
 	// ListTask 任务[列表]
 	ListTask(context.Context, *ListTaskRequest) (*ListTaskReply, error)
 	// ListTimer 定时器[列表]
@@ -129,6 +136,8 @@ func RegisterServiceHTTPServer(s *http.Server, srv ServiceHTTPServer) {
 	r.PUT("/v1/user/{id}/password", _Service_UpdateUserPassword0_HTTP_Handler(srv))
 	r.GET("/v1/user", _Service_ListUser0_HTTP_Handler(srv))
 	r.DELETE("/v1/user/{id}", _Service_DeleteUser0_HTTP_Handler(srv))
+	r.PUT("/v1/bucket", _Service_Bucket0_HTTP_Handler(srv))
+	r.GET("/v1/bucket", _Service_ListBucket0_HTTP_Handler(srv))
 }
 
 func _Service_Healthy0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
@@ -681,10 +690,52 @@ func _Service_DeleteUser0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Cont
 	}
 }
 
+func _Service_Bucket0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BucketRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceBucket)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Bucket(ctx, req.(*BucketRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BucketReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Service_ListBucket0_HTTP_Handler(srv ServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBucketRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationServiceListBucket)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBucket(ctx, req.(*ListBucketRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBucketReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ServiceHTTPClient interface {
 	AddApplication(ctx context.Context, req *AddApplicationRequest, opts ...http.CallOption) (rsp *Application, err error)
 	AddTimer(ctx context.Context, req *AddTimerRequest, opts ...http.CallOption) (rsp *AddTimerReply, err error)
 	AddUser(ctx context.Context, req *AddUserRequest, opts ...http.CallOption) (rsp *AddUserReply, err error)
+	Bucket(ctx context.Context, req *BucketRequest, opts ...http.CallOption) (rsp *BucketReply, err error)
 	DeleteApplication(ctx context.Context, req *DeleteApplicationRequest, opts ...http.CallOption) (rsp *DeleteApplicationReply, err error)
 	DeleteTimer(ctx context.Context, req *DeleteTimerRequest, opts ...http.CallOption) (rsp *DeleteTimerReply, err error)
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserReply, err error)
@@ -694,6 +745,7 @@ type ServiceHTTPClient interface {
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *User, err error)
 	Healthy(ctx context.Context, req *common.EmptyRequest, opts ...http.CallOption) (rsp *common.HealthyReply, err error)
 	ListApplication(ctx context.Context, req *ListApplicationRequest, opts ...http.CallOption) (rsp *ListApplicationReply, err error)
+	ListBucket(ctx context.Context, req *ListBucketRequest, opts ...http.CallOption) (rsp *ListBucketReply, err error)
 	ListTask(ctx context.Context, req *ListTaskRequest, opts ...http.CallOption) (rsp *ListTaskReply, err error)
 	ListTimer(ctx context.Context, req *ListTimerRequest, opts ...http.CallOption) (rsp *ListTimerReply, err error)
 	ListTimerTask(ctx context.Context, req *ListTimerTaskRequest, opts ...http.CallOption) (rsp *ListTimerTaskReply, err error)
@@ -750,6 +802,19 @@ func (c *ServiceHTTPClientImpl) AddUser(ctx context.Context, in *AddUserRequest,
 	opts = append(opts, http.Operation(OperationServiceAddUser))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) Bucket(ctx context.Context, in *BucketRequest, opts ...http.CallOption) (*BucketReply, error) {
+	var out BucketReply
+	pattern := "/v1/bucket"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationServiceBucket))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -865,6 +930,19 @@ func (c *ServiceHTTPClientImpl) ListApplication(ctx context.Context, in *ListApp
 	pattern := "/v1/app"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationServiceListApplication))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ServiceHTTPClientImpl) ListBucket(ctx context.Context, in *ListBucketRequest, opts ...http.CallOption) (*ListBucketReply, error) {
+	var out ListBucketReply
+	pattern := "/v1/bucket"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationServiceListBucket))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

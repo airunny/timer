@@ -45,6 +45,8 @@ const (
 	Service_UpdateUserPassword_FullMethodName      = "/api.timer.v1.Service/UpdateUserPassword"
 	Service_ListUser_FullMethodName                = "/api.timer.v1.Service/ListUser"
 	Service_DeleteUser_FullMethodName              = "/api.timer.v1.Service/DeleteUser"
+	Service_Bucket_FullMethodName                  = "/api.timer.v1.Service/Bucket"
+	Service_ListBucket_FullMethodName              = "/api.timer.v1.Service/ListBucket"
 )
 
 // ServiceClient is the client API for Service service.
@@ -104,6 +106,11 @@ type ServiceClient interface {
 	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserReply, error)
 	// 用户[删除]
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserReply, error)
+	// ---------------------------- 全局配置 ----------------------------
+	// 分桶[创建]
+	Bucket(ctx context.Context, in *BucketRequest, opts ...grpc.CallOption) (*BucketReply, error)
+	// 查看分桶信息
+	ListBucket(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketReply, error)
 }
 
 type serviceClient struct {
@@ -339,6 +346,24 @@ func (c *serviceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, o
 	return out, nil
 }
 
+func (c *serviceClient) Bucket(ctx context.Context, in *BucketRequest, opts ...grpc.CallOption) (*BucketReply, error) {
+	out := new(BucketReply)
+	err := c.cc.Invoke(ctx, Service_Bucket_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) ListBucket(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketReply, error) {
+	out := new(ListBucketReply)
+	err := c.cc.Invoke(ctx, Service_ListBucket_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
@@ -396,6 +421,11 @@ type ServiceServer interface {
 	ListUser(context.Context, *ListUserRequest) (*ListUserReply, error)
 	// 用户[删除]
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error)
+	// ---------------------------- 全局配置 ----------------------------
+	// 分桶[创建]
+	Bucket(context.Context, *BucketRequest) (*BucketReply, error)
+	// 查看分桶信息
+	ListBucket(context.Context, *ListBucketRequest) (*ListBucketReply, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -477,6 +507,12 @@ func (UnimplementedServiceServer) ListUser(context.Context, *ListUserRequest) (*
 }
 func (UnimplementedServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedServiceServer) Bucket(context.Context, *BucketRequest) (*BucketReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bucket not implemented")
+}
+func (UnimplementedServiceServer) ListBucket(context.Context, *ListBucketRequest) (*ListBucketReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBucket not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 
@@ -941,6 +977,42 @@ func _Service_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_Bucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BucketRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).Bucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_Bucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).Bucket(ctx, req.(*BucketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_ListBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBucketRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).ListBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_ListBucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).ListBucket(ctx, req.(*ListBucketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1047,6 +1119,14 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _Service_DeleteUser_Handler,
+		},
+		{
+			MethodName: "Bucket",
+			Handler:    _Service_Bucket_Handler,
+		},
+		{
+			MethodName: "ListBucket",
+			Handler:    _Service_ListBucket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

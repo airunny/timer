@@ -9,6 +9,7 @@ import "timer/v1/application.proto";
 import "timer/v1/timer.proto";
 import "timer/v1/user.proto";
 import "timer/v1/task.proto";
+import "timer/v1/bucket.proto";
 
 option go_package = "api/timer/v1;v1";
 
@@ -211,6 +212,18 @@ service Service {
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserReply) {
     option (google.api.http) = {delete: "/v1/user/{id}"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "删除用户",tags:["管理员"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
+  }
+
+  // ---------------------------- 全局配置 ----------------------------
+  // 分桶[创建]
+  rpc Bucket(BucketRequest) returns (BucketReply) {
+    option (google.api.http) = {put: "/v1/bucket" body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "创建分桶",tags:["配置"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
+  }
+  // 查看分桶信息
+  rpc ListBucket(ListBucketRequest) returns (ListBucketReply) {
+    option (google.api.http) = {get: "/v1/bucket"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {summary: "获取分桶",tags:["配置"],parameters:{headers:[{name:"Authorization",type:STRING,required:true}]}};
   }
 }
 

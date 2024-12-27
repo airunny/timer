@@ -12,7 +12,10 @@ import (
 	"github.com/airunny/timer/internal/models"
 	"github.com/airunny/timer/pkg/ikafka"
 	"github.com/airunny/timer/pkg/jwt"
+	"github.com/airunny/timer/pkg/queue"
+	"github.com/airunny/wiki-go-tools/locker"
 	"github.com/airunny/wiki-go-tools/ormhelper"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
 )
 
@@ -26,6 +29,7 @@ const (
 
 type Service struct {
 	v1.UnimplementedServiceServer
+	redisClient *redis.Client
 	business    *conf.Business
 	user        *dao.User
 	application *dao.Application
@@ -34,9 +38,14 @@ type Service struct {
 	token       *dao.Token
 	producer    *ikafka.Producer
 	JWT         *jwt.JWT
+	locker      locker.Locker
+	global      *dao.Global
+	publisher   queue.Publisher
+	consumer    queue.Consumer
 }
 
 func NewService(
+	redisClient *redis.Client,
 	business *conf.Business,
 	user *dao.User,
 	application *dao.Application,
@@ -63,7 +72,7 @@ func NewService(
 		}
 	}
 
-	jwtCli, err := jwt.NewJWT(business.JWT)
+	jwtClient, err := jwt.NewJWT(business.JWT)
 	if err != nil {
 		panic(err)
 	}
@@ -80,19 +89,29 @@ func NewService(
 		panic(fmt.Errorf("init admin user err %v", err))
 	}
 
-	s := &Service{
-		UnimplementedServiceServer: v1.UnimplementedServiceServer{},
-		business:                   business,
-		user:                       user,
-		application:                application,
-		timer:                      timer,
-		task:                       task,
-		token:                      token,
-		producer:                   producer,
-		JWT:                        jwtCli,
+	l, err := locker.NewLockerWithRedis(redisClient)
+	if err != nil {
+		panic(err)
 	}
-	return s, func() {
 
+	consumer := queue.NewConsumerWithRedis(redisClient)
+	s := &Service{
+		redisClient: redisClient,
+		business:    business,
+		user:        user,
+		application: application,
+		timer:       timer,
+		task:        task,
+		token:       token,
+		producer:    producer,
+		JWT:         jwtClient,
+		locker:      l,
+		publisher:   queue.NewPublishWithRedis(redisClient),
+		consumer:    consumer,
+	}
+
+	return s, func() {
+		consumer.Close()
 	}
 }
 
